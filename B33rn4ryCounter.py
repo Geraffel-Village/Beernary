@@ -1,8 +1,11 @@
 import sys
+import os
+sys.path.append('/home/florian/Desktop/b33rn4rycounter')
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtGui import QMessageBox
+from PyQt4.QtGui import QMessageBox, QDialog
 from PyQt4.QtSql import *
 import MySQLdb
+from newUser import Ui_newUserDialog
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType("B33rn4ryCounter.ui")
 
@@ -12,11 +15,12 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
         self.exitButton.clicked.connect(self.exitButtonClicked)
+        self.newUserButton.clicked.connect(self.newUser)
         self.actionQuit.triggered.connect(self.exitButtonClicked)
         self.delUserButton.clicked.connect(self.deleteUser)
         global db
         try:
-            db = MySQLdb.connect("192.168.2.115","b33rn4ry","b33rn4ry","b33rn4rycounter" )
+            db = MySQLdb.connect("10.99.0.188","b33rn4ry","b33rn4ry","b33rn4rycounter" )
         except:
             self.statusBar().showMessage('Error connecting database!')
         else:
@@ -45,6 +49,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.userTable.setRowCount(0)
         self.userTable.setHorizontalHeaderLabels(headernames)
         cursor.execute("SELECT `id`, `name`, `timestamp` FROM users WHERE 1 ORDER BY `timestamp` DESC;")
+        db.commit()
         rows = cursor.fetchall() 
         for row in rows:
             self.userTable.insertRow(self.userTable.rowCount()) 
@@ -68,8 +73,18 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 print("Error executing SQL statement!")
             self.refreshUserTable()
 
+    def newUser(self):
+        form = QtGui.QDialog()
+        print ("creating a new user")
+        name = "testUSER"
+        cursor.execute("INSERT INTO users SET `id`=987655231, `name`='%s';" % name)
+        db.commit()
+
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
+    newUserWindow = QDialog()
+    ui = Ui_newUserDialog()
+    ui.setupUi(newUserWindow)
     window = MainWindow()
     window.show()
     sys.exit(app.exec_())
