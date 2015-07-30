@@ -19,7 +19,7 @@
     <normaloff>icon.png</normaloff>icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="labelLogo">
     <property name="geometry">
      <rect>
       <x>120</x>
@@ -131,6 +131,9 @@
     <property name="horizontalScrollBarPolicy">
      <enum>Qt::ScrollBarAlwaysOff</enum>
     </property>
+    <property name="editTriggers">
+     <set>QAbstractItemView::NoEditTriggers</set>
+    </property>
     <property name="alternatingRowColors">
      <bool>true</bool>
     </property>
@@ -144,7 +147,7 @@
      <enum>Qt::DashLine</enum>
     </property>
     <property name="columnCount">
-     <number>3</number>
+     <number>4</number>
     </property>
     <attribute name="horizontalHeaderDefaultSectionSize">
      <number>150</number>
@@ -161,6 +164,30 @@
     <column/>
     <column/>
     <column/>
+    <column/>
+   </widget>
+   <widget class="QLabel" name="labelMessage">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>480</y>
+      <width>501</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -176,6 +203,8 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="actionNewUser"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
@@ -199,6 +228,18 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionNewUser">
+   <property name="icon">
+    <iconset>
+     <normaloff>../B33rn4ry Counter/newUser.png</normaloff>../B33rn4ry Counter/newUser.png</iconset>
+   </property>
+   <property name="text">
+    <string>New User</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
  </widget>
