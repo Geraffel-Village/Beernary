@@ -93,6 +93,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
     def newUser(self):
         form = QtGui.QDialog()
+        newUserWindow.clearFields()
         newUserWindow.show()
 
 class newUserDialog(QtGui.QDialog, Ui_newUserDialog):
@@ -107,22 +108,27 @@ class newUserDialog(QtGui.QDialog, Ui_newUserDialog):
     def addUser(self):
         palette = QtGui.QPalette()
         username = self.lineUserName.text()
-        cursor.execute("SELECT COUNT(*) FROM `users` WHERE `id` = '%s';" % ID)
-        result = cursor.fetchone()
-        if result[0] > 0:
+        if username == '' or self.lineRFIDno == '':
             palette.setColor(QtGui.QPalette.Foreground,QtCore.Qt.red)
-            window.labelMessage.setText("Error: User ID exists!")
+            window.labelMessage.setText("Error: User name or RFID# empty!")
         else:
-            cursor.execute("INSERT IGNORE INTO `users` SET `id`='%s', `name` = '%s';" % (ID, username))
-            db.commit()
-            palette.setColor(QtGui.QPalette.Foreground,QtCore.Qt.green)
-            window.labelMessage.setText("User added succesfully!")
-        window.refreshUserTable()
+            cursor.execute("SELECT COUNT(*) FROM `users` WHERE `id` = '%s';" % ID)
+            result = cursor.fetchone()
+            if result[0] > 0:
+                palette.setColor(QtGui.QPalette.Foreground,QtCore.Qt.red)
+                window.labelMessage.setText("Error: User ID exists!")
+            else:
+                cursor.execute("INSERT IGNORE INTO `users` SET `id`='%s', `name` = '%s';" % (ID, username))
+                db.commit()
+                palette.setColor(QtGui.QPalette.Foreground,QtCore.Qt.green)
+                window.labelMessage.setText("User added succesfully!")
+            window.refreshUserTable()
         window.labelMessage.setPalette(palette)
+        self.clearFields()
 
     def readRFID(self):
         global ID
-        ID = ""
+        ID = ''
         ID = read_rfid()
         if ID:
             pID = str(int(ID[2:], 16))
@@ -147,6 +153,7 @@ def read_rfid():
     if i < 5:
         data = ser.read(10)
         ser.close()
+        print data
         return data
     else:
         return 0

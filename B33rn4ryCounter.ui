@@ -206,6 +206,8 @@
     <addaction name="separator"/>
     <addaction name="actionNewUser"/>
     <addaction name="separator"/>
+    <addaction name="actionRefreshUserTable"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <addaction name="menuFile"/>
@@ -240,6 +242,21 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionRefreshUserTable">
+   <property name="icon">
+    <iconset>
+     <normaloff>../B33rn4ry Counter/refresh.png</normaloff>../B33rn4ry Counter/refresh.png</iconset>
+   </property>
+   <property name="text">
+    <string>Refresh User Table</string>
+   </property>
+   <property name="toolTip">
+    <string>Refresh User Table</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
  </widget>
