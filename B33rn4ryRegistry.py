@@ -17,7 +17,7 @@ RFID_END = "\x04"
 SERIAL_DEVICE = "/dev/ttyUSB0"
 BAUDRATE = 9600
 
-Ui_MainWindow, QtBaseClass = uic.loadUiType("B33rn4ryCounter.ui")
+Ui_MainWindow, QtBaseClass = uic.loadUiType("B33rn4ryRegistry.ui")
 Ui_newUserDialog, QtBaseClass = uic.loadUiType("newUser.ui")
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
@@ -32,7 +32,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.delUserButton.clicked.connect(self.deleteUser)
         global db
         try:
-            db = MySQLdb.connect("192.168.2.115","b33rn4ry","b33rn4ry","b33rn4rycounter" )
+            db = MySQLdb.connect("10.99.0.188","b33rn4ry","b33rn4ry","b33rn4rycounter" )
         except:
             self.statusBar().showMessage('Error connecting database!')
         else:
