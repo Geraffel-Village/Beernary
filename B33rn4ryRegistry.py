@@ -1,12 +1,9 @@
 import sys
-import os
-sys.path.append('/home/florian/Desktop/b33rn4rycounter')
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QDialog
 from PyQt4.QtSql import *
 import MySQLdb
 import serial
-import time
 
 # RFID start and end flags
 RFID_START = "\x02"
