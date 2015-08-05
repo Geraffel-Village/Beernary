@@ -102,6 +102,12 @@
   <zorder>lineUserName</zorder>
   <zorder>readRfidButton</zorder>
  </widget>
+ <tabstops>
+  <tabstop>lineUserName</tabstop>
+  <tabstop>buttonBox</tabstop>
+  <tabstop>readRfidButton</tabstop>
+  <tabstop>lineRFIDno</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

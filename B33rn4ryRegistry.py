@@ -7,14 +7,13 @@ from PyQt4.QtSql import *
 import MySQLdb
 import serial
 import time
-#from newUser import Ui_newUserDialog
 
 # RFID start and end flags
 RFID_START = "\x02"
 RFID_END = "\x04"
 
 # Serial bitrate for RFID reader
-SERIAL_DEVICE = "/dev/ttyUSB0"
+SERIAL_DEVICE = "/dev/ttyUSB1"
 BAUDRATE = 9600
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType("B33rn4ryRegistry.ui")
@@ -95,12 +94,14 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         form = QtGui.QDialog()
         newUserWindow.clearFields()
         newUserWindow.show()
+        newUserWindow.readRFID()
 
 class newUserDialog(QtGui.QDialog, Ui_newUserDialog):
     def __init__(self, parent=MainWindow):
         QtGui.QDialog.__init__(self)
         Ui_newUserDialog.__init__(self)
         self.setupUi(self)
+        self.lineUserName.setFocus()
         self.readRfidButton.clicked.connect(self.readRFID)
         self.buttonBox.accepted.connect(self.addUser)
         self.buttonBox.rejected.connect(self.clearFields)
@@ -146,14 +147,11 @@ def read_rfid():
     except serial.serialutil.SerialException:
         print "Could not open serial device " +SERIAL_DEVICE
     data = ser.read(1)
-    i = 1
-    while data != 'R' and i < 10 and data != '':
-        i += 1
+    while data != 'R' and data != '':
         data = ser.read(1)
-    if i < 5:
-        data = ser.read(10)
-        ser.close()
-        print data
+    data = ser.read(10)
+    ser.close()
+    if data != '':
         return data
     else:
         return 0
