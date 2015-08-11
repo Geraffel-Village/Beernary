@@ -90,7 +90,7 @@ def main():
 
     ID = read_rfid()
 
-    if ID != "":
+    if ID:
       if ID != IDtmp:
         pID = str(int(ID[2:], 16))
         lcd_backlight(True)
