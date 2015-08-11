@@ -132,13 +132,16 @@ def read_rfid():
     ser = serial.Serial(SERIAL_DEVICE, BAUDRATE, timeout=1) 
   except serial.serialutil.SerialException:
     print "Could not open serial device " +SERIAL_DEVICE
-  data = ser.read(13)
-  ser.close()    
-  data = data.replace("R", "" )
-  data = data.replace("\x02", "" )
-  data = data.replace("\x04", "" )
-  return data
- 
+    data = ser.read(1)
+    while data != RFID_START and data != '':
+        data = ser.read(1)
+    data = ser.read(10)
+    ser.close()
+    if data != '':
+        return data
+    else:
+        return 0
+
 def lcd_init():
   # Initialise display
   lcd_byte(0x33,LCD_CMD) # 110011 Initialise
