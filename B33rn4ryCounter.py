@@ -102,13 +102,13 @@ def main():
           lcd_string("User: "+str(result[0]),LCD_LINE_3,1)
           #lcd_string("ACCESS GRANTED!",LCD_LINE_3,1)
           lcd_string("Go ahead and draw a beer!",LCD_LINE_4,1)
-          os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
+          #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
           valve(True)
           IDtmp = ID
         else:
           lcd_string("ACCESS DENIED!",LCD_LINE_3,1)
           lcd_string("                    ",LCD_LINE_4,1)
-          os.system('mpg321 sadtrombone.mp3')
+          #os.system('mpg321 sadtrombone.mp3')
  
     else:
       valve(False)
