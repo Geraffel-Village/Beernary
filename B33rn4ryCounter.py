@@ -45,18 +45,9 @@ def main():
   # Main program block
 
   IDtmp = ""
-# Register ISR
-  Counter = 0
   GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
   GPIO.setup(FLOWSENSOR, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-  def Interrupt(channel):
-     global Counter
-     Counter = Counter + 1
-     print "Counter " + str(Counter)
-   
-  GPIO.add_event_detect(FLOWSENSOR, GPIO.RISING, callback = Interrupt, bouncetime = 200) 
 
- 
   GPIO.setup(LCD_E, GPIO.OUT)  # E
   GPIO.setup(LCD_RS, GPIO.OUT) # RS
   GPIO.setup(LCD_D4, GPIO.OUT) # DB4
@@ -96,7 +87,7 @@ def main():
     # clear variables
     ID = ""
     pID = ""
- 
+
     ID = read_rfid()
 
     if ID != "":
