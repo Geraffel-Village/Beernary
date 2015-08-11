@@ -6,11 +6,11 @@ import MySQLdb
 import serial
 
 # RFID start and end flags
-RFID_START = "\x02"
-RFID_END = "\x04"
+RFID_START = "\x04"
+RFID_END = "\x02"
 
 # Serial bitrate for RFID reader
-SERIAL_DEVICE = "/dev/ttyUSB1"
+SERIAL_DEVICE = "/dev/ttyUSB5"
 BAUDRATE = 9600
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType("B33rn4ryRegistry.ui")
@@ -144,7 +144,7 @@ def read_rfid():
     except serial.serialutil.SerialException:
         print "Could not open serial device " +SERIAL_DEVICE
     data = ser.read(1)
-    while data != 'R' and data != '':
+    while data != RFID_START and data != '':
         data = ser.read(1)
     data = ser.read(10)
     ser.close()

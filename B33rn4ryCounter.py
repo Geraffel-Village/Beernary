@@ -34,8 +34,8 @@ E_PULSE = 0.0005
 E_DELAY = 0.0005
 
 # RFID start and end flags
-RFID_START = "\x02"
-RFID_END = "\x04"
+RFID_START = "\x04"
+RFID_END = "\x02"
 
 # Serial bitrate for RFID reader
 SERIAL_DEVICE = "/dev/ttyUSB0"
