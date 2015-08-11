@@ -131,8 +131,6 @@ def read_rfid():
     ser.close()
     if data != '':
         return data
-    else:
-        return 0
 
 def lcd_init():
   # Initialise display
