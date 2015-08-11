@@ -43,7 +43,8 @@ BAUDRATE = 9600
 
 def main():
   # Main program block
- 
+
+  IDtmp = ""
 # Register ISR
   Counter = 0
   GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
