@@ -47,6 +47,7 @@ def main():
   IDtmp = ""
   GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
   GPIO.setup(FLOWSENSOR, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+  GPIO.add_event_detect(FLOWSENSOR, GPIO.RISING, callback=flowsensor_callback, bouncetime=300)
 
   GPIO.setup(LCD_E, GPIO.OUT)  # E
   GPIO.setup(LCD_RS, GPIO.OUT) # RS
@@ -216,6 +217,9 @@ def lcd_backlight(flag):
 
 def valve(flag):
   GPIO.output(VALVE, flag)
+
+def flowsensor_callback(channel):
+    print "got impulse from flowmeter"
 
 if __name__ == '__main__':
  
