@@ -5,7 +5,6 @@ import RPi.GPIO as GPIO
 import serial
 import time
 import datetime
-import MySQLdb
 import os
  
 # Define GPIO mapping
@@ -58,7 +57,6 @@ class beerKeg:
   def getPulses(self):
     return self.__pulses__
 
-
 def main():
   # Main program block
 
@@ -83,9 +81,7 @@ def main():
   # Initialise display
   lcd_init()
 
-  # Connect to mySQL db
-  db = MySQLdb.connect(host="localhost", user="b33rn4ry", passwd="b33rn4ry", db="b33rn4rycounter")
-  cursor=db.cursor()
+  db = Beern4ryDatabase(type='MYSQL')
 
 #  lcd_backlight(True)
 #  time.sleep(0.5)
@@ -119,8 +115,7 @@ def main():
         lcd_backlight(True)
         lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
         lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
-        cursor.execute ("SELECT `name` FROM `users` WHERE id = '"+ID+"';")
-        result = cursor.fetchone()
+        result = db.checkUser(ID)
         if result is not None:
           if (IdPulsesStart is None):
             IdPulsesStart = currentKeg.getPulses()
