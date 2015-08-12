@@ -6,6 +6,7 @@ import serial
 import time
 import datetime
 import os
+import B33rn4ryDatabase
  
 # Define GPIO mapping
 LCD_RS = 25
@@ -81,7 +82,7 @@ def main():
   # Initialise display
   lcd_init()
 
-  db = Beern4ryDatabase(type='MYSQL')
+  db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='FILE')
 
 #  lcd_backlight(True)
 #  time.sleep(0.5)
@@ -127,12 +128,12 @@ def main():
           IDtmp = ID
         else:
           if (IdPulsesStart is not None):
-            print "User got %d pulses" % (currentKeg.getPulses() - IdPulsesStart)
+            db.storeDraft(ID, currentKeg.getPulses() - IdPulsesStart)
           IdPulsesStart = None
           lcd_string("ACCESS DENIED!",LCD_LINE_3,1)
           lcd_string("                    ",LCD_LINE_4,1)
           #os.system('mpg321 sadtrombone.mp3')
- 
+
     else:
       valve(False)
       lcd_backlight(False)

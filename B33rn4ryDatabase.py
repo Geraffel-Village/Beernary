@@ -12,6 +12,10 @@ class B33rn4ryDatabase():
     
   def checkUser(self, userID):
     return self.Database.checkUser(userID)
+  
+  def storeDraft(self, userID, pulses):
+      print "test %s" % pulses
+    self.Database.storeDraft(userID, pulses)
       
   def userConsumed(self):
     return -1
@@ -24,6 +28,9 @@ class FileDatabase():
     
   def userConsumed(self, userID):
     return -1
+  
+  def storeDraft(self, userID, pulses):
+    print "user drafted %d pulses" % pulses
 
 class MysqlDatabase():
 
@@ -41,3 +48,6 @@ class MysqlDatabase():
     self.cursor.execute ("SELECT `name` FROM `users` WHERE id = '"+userID+"';")
     return self.cursor.fetchone()
 
+  def storeDraft(self, userID, pulses):
+    self.cursor.execute ("Insert INTO 'consume' (userid, pulses) VALUES %s, %s" % (userID, pulses) )  
+    print "user drafted %d pulses" % pulses
