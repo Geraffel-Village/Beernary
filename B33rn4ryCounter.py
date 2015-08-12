@@ -41,13 +41,35 @@ RFID_END = "\x02"
 SERIAL_DEVICE = "/dev/ttyUSB0"
 BAUDRATE = 9600
 
+class beerKeg:
+  __pulses__ = 0
+
+  def __init__(self):
+    self.__pulses__ = 0
+
+  # just to habdle the "channel"-argument given by callback-function
+  def newPulse(self, *args):
+    if len(args) == 0:
+      self.__pulses__ += 1
+    else:
+      self.__pulses__ += 1
+    print self.getPulses()
+
+  def getPulses(self):
+    return self.__pulses__
+
+
 def main():
   # Main program block
 
   IDtmp = ""
+  IdPulsesStart = None
+
+  currentKeg = beerKeg()
+
   GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
   GPIO.setup(FLOWSENSOR, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-  GPIO.add_event_detect(FLOWSENSOR, GPIO.RISING, callback=flowsensor_callback, bouncetime=300)
+  GPIO.add_event_detect(FLOWSENSOR, GPIO.RISING, callback=currentKeg.newPulse, bouncetime=300)
 
   GPIO.setup(LCD_E, GPIO.OUT)  # E
   GPIO.setup(LCD_RS, GPIO.OUT) # RS
@@ -100,6 +122,8 @@ def main():
         cursor.execute ("SELECT `name` FROM `users` WHERE id = '"+ID+"';")
         result = cursor.fetchone()
         if result is not None:
+          if (IdPulsesStart is None):
+            IdPulsesStart = currentKeg.getPulses()
           lcd_string("User: "+str(result[0]),LCD_LINE_3,1)
           #lcd_string("ACCESS GRANTED!",LCD_LINE_3,1)
           lcd_string("Go ahead and draw a beer!",LCD_LINE_4,1)
@@ -107,6 +131,9 @@ def main():
           valve(True)
           IDtmp = ID
         else:
+          if (IdPulsesStart is not None):
+            print "User got %d pulses" & (currentKeg.getPulses - IdPulsesStart)
+          IdPulsesStart = None
           lcd_string("ACCESS DENIED!",LCD_LINE_3,1)
           lcd_string("                    ",LCD_LINE_4,1)
           #os.system('mpg321 sadtrombone.mp3')
@@ -217,9 +244,6 @@ def lcd_backlight(flag):
 
 def valve(flag):
   GPIO.output(VALVE, flag)
-
-def flowsensor_callback(channel):
-    print "got impulse from flowmeter"
 
 if __name__ == '__main__':
  
