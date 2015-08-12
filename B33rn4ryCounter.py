@@ -132,7 +132,7 @@ def main():
           IDtmp = ID
         else:
           if (IdPulsesStart is not None):
-            print "User got %d pulses" & (currentKeg.getPulses - IdPulsesStart)
+            print "User got %d pulses" % (currentKeg.getPulses() - IdPulsesStart)
           IdPulsesStart = None
           lcd_string("ACCESS DENIED!",LCD_LINE_3,1)
           lcd_string("                    ",LCD_LINE_4,1)
