@@ -5,8 +5,8 @@ class B33rn4ryDatabase():
   def __init__(self, dbtype='MYSQL'):
     if dbtype == 'MYSQL':
       self.Database = MysqlDatabase()
-    elif dbtype == 'FILE':
-      self.Database = FileDatabase()
+    elif dbtype == 'CONSOLE':
+      self.Database = ConsoleDatabase()
     else:
       raise(NotImplementedError("unknown databse-type"))
     
@@ -14,13 +14,12 @@ class B33rn4ryDatabase():
     return self.Database.checkUser(userID)
   
   def storeDraft(self, userID, pulses):
-      print "test %s" % pulses
     self.Database.storeDraft(userID, pulses)
       
   def userConsumed(self):
     return -1
 
-class FileDatabase():
+class ConsoleDatabase():
 
   def checkUser(self, userID):
     if userID == 'valid':
