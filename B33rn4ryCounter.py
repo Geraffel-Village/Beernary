@@ -68,7 +68,7 @@ def main():
 
   GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
   GPIO.setup(FLOWSENSOR, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-  GPIO.add_event_detect(FLOWSENSOR, GPIO.RISING, callback=currentKeg.newPulse, bouncetime=300)
+  GPIO.add_event_detect(FLOWSENSOR, GPIO.RISING, callback=currentKeg.newPulse)
 
   GPIO.setup(LCD_E, GPIO.OUT)  # E
   GPIO.setup(LCD_RS, GPIO.OUT) # RS
