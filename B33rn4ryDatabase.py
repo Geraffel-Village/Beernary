@@ -21,9 +21,15 @@ class B33rn4ryDatabase():
 
 class ConsoleDatabase():
 
+  validUsers = {
+    '001',
+    '3800C9C3B7',
+#    '3800CA2422',
+  }
+  
   def checkUser(self, userID):
-    if userID == 'valid':
-      return ['geraffel-user',]
+    if userID in self.validUsers:
+      return ['user'+userID,]
     
   def userConsumed(self, userID):
     return -1
