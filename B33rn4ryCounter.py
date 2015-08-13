@@ -82,7 +82,7 @@ def main():
   # Initialise display
   lcd_init()
 
-  db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='CONSOLE')
+  db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL')
 
 #  lcd_backlight(True)
 #  time.sleep(0.5)
