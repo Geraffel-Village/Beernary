@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QDialog
