@@ -67,7 +67,7 @@ def main():
   currentKeg = beerKeg()
 
   GPIO.setmode(GPIO.BCM)       # Use BCM GPIO numbers
-  GPIO.setup(FLOWSENSOR, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+  GPIO.setup(FLOWSENSOR, GPIO.IN)
   GPIO.add_event_detect(FLOWSENSOR, GPIO.RISING, callback=currentKeg.newPulse)
 
   GPIO.setup(LCD_E, GPIO.OUT)  # E
