@@ -136,6 +136,9 @@ def main():
 
     else:
       valve(False)
+      if (IdPulsesStart is not None):
+        db.storeDraft(ID, currentKeg.getPulses() - IdPulsesStart)
+      IdPulsesStart = None
       lcd_backlight(False)
       lcd_string("B33rn4ry Counter",LCD_LINE_1,1)
       lcd_string("Idle",LCD_LINE_2,1)
