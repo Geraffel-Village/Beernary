@@ -63,6 +63,7 @@ def main():
 
   IDtmp = ""
   IdPulsesStart = None
+  kegID = 2
 
   currentKeg = beerKeg()
 
@@ -129,6 +130,7 @@ def main():
         else:
           if (IdPulsesStart is not None):
             db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)
+            db.setKegPulses(kegID, currentKeg.getPulses())
           IdPulsesStart = None
           lcd_string("ACCESS DENIED!",LCD_LINE_3,1)
           lcd_string("                    ",LCD_LINE_4,1)
@@ -138,6 +140,7 @@ def main():
       valve(False)
       if (IdPulsesStart is not None):
         db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)
+        db.setKegPulses(kegID, currentKeg.getPulses())
       IdPulsesStart = None
       lcd_backlight(False)
       lcd_string("B33rn4ry Counter",LCD_LINE_1,1)

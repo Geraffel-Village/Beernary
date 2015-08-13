@@ -15,6 +15,12 @@ class B33rn4ryDatabase():
   
   def storeDraft(self, userID, pulses):
     self.Database.storeDraft(userID, pulses)
+
+  def getKegPulses(self, kegNum):
+    return self.Database.getKegPulses(kegNum)
+    
+  def setKegPulses(self, kegNum, pulses):
+    self.Database.setKegPulses(kegNum, pulses)
       
   def userConsumed(self):
     return -1
@@ -57,3 +63,11 @@ class MysqlDatabase():
     self.cursor.execute ("Insert INTO `consume` (id, pulses) VALUES ('%s', %d)" % (userID, pulses) )  
     self.db.commit()
     print "user drafted %d pulses" % pulses
+
+  def getKegPulses(self, kegNum):
+    self.cursor.execute ("SELECT pulses FROM `keg` WHERE kegid=%d") % kegNum
+    return self.cursor.fetchone()
+    
+  def setKegPulses(self, kegNum, pulses):
+    self.cursor.execute ("UPDATE `keg` SET pulses=%d WHERE kegid=%d" % (pulses, kegNum) )
+    self.db.commit()
