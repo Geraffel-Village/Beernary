@@ -128,7 +128,7 @@ def main():
           IDtmp = ID
         else:
           if (IdPulsesStart is not None):
-            db.storeDraft(ID, currentKeg.getPulses() - IdPulsesStart)
+            db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)
           IdPulsesStart = None
           lcd_string("ACCESS DENIED!",LCD_LINE_3,1)
           lcd_string("                    ",LCD_LINE_4,1)
@@ -137,7 +137,7 @@ def main():
     else:
       valve(False)
       if (IdPulsesStart is not None):
-        db.storeDraft(ID, currentKeg.getPulses() - IdPulsesStart)
+        db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)
       IdPulsesStart = None
       lcd_backlight(False)
       lcd_string("B33rn4ry Counter",LCD_LINE_1,1)
