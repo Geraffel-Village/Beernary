@@ -47,12 +47,13 @@ class MysqlDatabase():
 
     # Connect to mySQL db
     self.db = MySQLdb.connect(host="localhost", user="b33rn4ry", passwd="b33rn4ry", db="b33rn4rycounter")
-    self.cursor=db.cursor()
+    self.cursor=self.db.cursor()
 
   def checkUser(self, userID):
     self.cursor.execute ("SELECT `name` FROM `users` WHERE id = '"+userID+"';")
     return self.cursor.fetchone()
 
   def storeDraft(self, userID, pulses):
-    self.cursor.execute ("Insert INTO 'consume' (userid, pulses) VALUES %s, %s" % (userID, pulses) )  
+    self.cursor.execute ("Insert INTO `consume` (id, pulses) VALUES ('%s', %d)" % (userID, pulses) )  
+    self.db.commit()
     print "user drafted %d pulses" % pulses
