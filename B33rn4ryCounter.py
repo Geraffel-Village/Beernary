@@ -7,7 +7,7 @@ import time
 import datetime
 import os
 import B33rn4ryDatabase
- 
+
 # Define GPIO mapping
 LCD_RS = 25
 LCD_E  = 24
@@ -63,7 +63,8 @@ def main():
 
   IDtmp = ""
   IdPulsesStart = None
-  kegID = 2
+  currentEvent = None
+  kegID = None
 
   currentKeg = beerKeg()
 
@@ -84,6 +85,12 @@ def main():
   lcd_init()
 
   db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL')
+  try:
+    currentEvent = db.getActiveEvent()
+  except B33rn4rySetupEventError as error:
+    lcd_string("Event-setup wrong !!!!",LCD_LINE_2,1)
+    sleep 2
+    
 
 #  lcd_backlight(True)
 #  time.sleep(0.5)
@@ -99,6 +106,12 @@ def main():
 #  lcd_backlight(False)
  
   lcd_string("B33rn4ry Counter",LCD_LINE_1,1)
+  lcd_string("                    ",LCD_LINE_2,1)
+  lcd_string("     Welcome to     ",LCD_LINE_3,1)
+  lcd_string(currentEvent[1].zfill(16),LCD_LINE_4,1)
+
+  sleep(2)
+  
   lcd_string("Idle",LCD_LINE_2,1)
   lcd_string("                    ",LCD_LINE_3,1)
   lcd_string("Waiting for Geeks",LCD_LINE_4,1)
@@ -108,6 +121,12 @@ def main():
     # clear variables
     ID = ""
     pID = ""
+
+    try:
+      kegID = db.getCurrentKeg(currentEvent)
+    except B33rn4ryKegError error:
+      lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
+      sleep 2
 
     ID = read_rfid()
 
