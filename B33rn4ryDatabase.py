@@ -93,11 +93,11 @@ class MysqlDatabase():
     return self.cursor.fetchall()
   
   def addUser(self, ID, newUsername):
-    self.cursor.execute("SELECT COUNT(*) FROM `users` WHERE `id` = '%s';" % ID)
-    if self.cursor.fetchone() is not None:
+    self.cursor.execute("SELECT id FROM `users` WHERE `id` = '%s';" % ID)
+    if self.cursor.rowcount != 0:
       raise NotImplementedError("Id already registered")
-    self.cursor.execute("SELECT COUNT(*) FROM `users` WHERE `name` = '%s';" % newUsername)
-    if self.cursor.fetchone() is not None:
+    self.cursor.execute("SELECT name FROM `users` WHERE `name` = '%s';" % newUsername)
+    if self.cursor.rowcount != 0:
       raise NotImplementedError("adding dublicate Username not implemented")
     self.cursor.execute("INSERT IGNORE INTO `users` SET `id`='%s', `name` = '%s';" % (ID, newUsername))
     self.db.commit()
