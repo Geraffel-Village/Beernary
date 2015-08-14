@@ -15,7 +15,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>icon.png</normaloff>icon.png</iconset>
+    <normaloff>../../../.designer/backup/icon.png</normaloff>../../../.designer/backup/icon.png</iconset>
   </property>
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
@@ -71,7 +71,7 @@
       <rect>
        <x>135</x>
        <y>44</y>
-       <width>51</width>
+       <width>71</width>
        <height>30</height>
       </rect>
      </property>

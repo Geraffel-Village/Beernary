@@ -156,7 +156,10 @@ class serviceDialog(QtGui.QDialog, Ui_serviceDialog):
         self.kegvolumeBox.addItem("10 L")
     
     def addKeg(self):
-        print "adding keg"
+        eventid = self.eventBox.itemData(self.eventBox.currentIndex())
+        kegvolume = str(self.kegvolumeBox.currentText()).strip(' L')
+        window.db.newKeg(int(eventid.toInt()[0]), int(kegvolume) )
+        print "added keg"
         
 
 def read_rfid():

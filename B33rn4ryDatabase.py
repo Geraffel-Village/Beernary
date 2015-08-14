@@ -104,10 +104,10 @@ class MysqlDatabase():
 
   def newKeg(self, event, volume):
     # mark current Keg as empty
-    self.cursor.execute("UPDATE `keg` SET `isEmpty'=True WHERE eventid='%d' AND isEmpty=False;" % (ID))
-    if len(self.cursor.fetchall) != 1:
+    self.cursor.execute("UPDATE `keg` SET `isempty`=True WHERE eventid=%d AND isEmpty=False;" % (event))
+    if self.cursor.rowcount <> 1:
       self.db.rollback()
       raise RuntimeError("wrong # of kegs for this event")
-    self.cursor.execute ("Insert INTO `keg` (eventid, volume) VALUES ('%d', %d)" % (event, volume) )  
+    self.cursor.execute ("Insert INTO `keg` (eventid, volume) VALUES (%d, %d)" % (event, volume) )
     self.db.commit()
     
