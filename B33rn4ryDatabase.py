@@ -13,6 +13,9 @@ class B33rn4ryDatabase():
   def checkUser(self, userID):
     return self.Database.checkUser(userID)
   
+  def getUsers(self):
+    return self.Database.getUsers()
+
   def storeDraft(self, userID, pulses):
     self.Database.storeDraft(userID, pulses)
 
@@ -24,6 +27,15 @@ class B33rn4ryDatabase():
       
   def userConsumed(self):
     return -1
+
+  def getEvents(self):
+    return self.Database.getEvents()
+  
+  def addUser(self, ID, newUsername):
+    return self.Database.addUser(ID, newUsername)
+
+  def newKeg(self, event, volume):
+    self.Database.newKeg(event, volume)
 
 class ConsoleDatabase():
 
@@ -52,12 +64,16 @@ class MysqlDatabase():
     import MySQLdb
 
     # Connect to mySQL db
-    self.db = MySQLdb.connect(host="localhost", user="b33rn4ry", passwd="b33rn4ry", db="b33rn4rycounter")
+    self.db = MySQLdb.connect(host="151.217.58.42", user="b33rn4ry", passwd="b33rn4ry", db="b33rn4rycounter")
     self.cursor=self.db.cursor()
-
+    
   def checkUser(self, userID):
     self.cursor.execute ("SELECT `name` FROM `users` WHERE id = '"+userID+"';")
     return self.cursor.fetchone()
+
+  def getUsers(self):
+    self.cursor.execute ("SELECT `id`, `name`, `timestamp` FROM users ORDER BY `timestamp` DESC;")
+    return self.cursor.fetchall()
 
   def storeDraft(self, userID, pulses):
     self.cursor.execute ("Insert INTO `consume` (id, pulses) VALUES ('%s', %d)" % (userID, pulses) )  
@@ -71,3 +87,29 @@ class MysqlDatabase():
   def setKegPulses(self, kegNum, pulses):
     self.cursor.execute ("UPDATE `keg` SET pulses=%d WHERE kegid=%d" % (pulses, kegNum) )
     self.db.commit()
+  
+  def getEvents(self):
+    self.cursor.execute ("SELECT name, eventid FROM `event` ORDER by name")
+    return self.cursor.fetchall()
+  
+  def addUser(self, ID, newUsername):
+    self.cursor.execute("SELECT COUNT(*) FROM `users` WHERE `id` = '%s';" % ID)
+    print self.cursor.fetchone()
+    if self.cursor.fetchone() is not None:
+      raise NotImplementedError("Id already registered")
+    self.cursor.execute("SELECT COUNT(*) FROM `users` WHERE `name` = '%s';" % newUsername)
+    print self.cursor.fetchone()
+    if self.cursor.fetchone() is not None:
+      raise NotImplementedError("adding dublicate Username not implemented")
+    self.cursor.execute("INSERT IGNORE INTO `users` SET `id`='%s', `name` = '%s';" % (ID, newUsername))
+    self.db.commit()
+
+  def newKeg(self, event, volume):
+    # mark current Keg as empty
+    self.cursor.execute("UPDATE `keg` SET `isEmpty'=True WHERE eventid='%d' AND isEmpty=False;" % (ID))
+    if len(self.cursor.fetchall) != 1:
+      self.db.rollback()
+      raise RuntimeError("wrong # of kegs for this event")
+    self.cursor.execute ("Insert INTO `keg` (eventid, volume) VALUES ('%d', %d)" % (event, volume) )  
+    self.db.commit()
+    
