@@ -22,6 +22,7 @@ Ui_serviceDialog, QtBaseClass = uic.loadUiType("service.ui")
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     
     db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL')
+    currentEvent = None
     
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self)
@@ -145,10 +146,13 @@ class serviceDialog(QtGui.QDialog, Ui_serviceDialog):
         Ui_serviceDialog.__init__(self)
         self.setupUi(self)
         self.newKegButton.clicked.connect(self.addKeg)
-#        self.buttonBox.rejected.connect(self.clearFields)
+        self.acceptEventButton.clicked.connect(self.acceptEventButtonClicked)
         rows = window.db.getEvents()
         for row in rows:
             self.eventBox.addItem(row[0], row[1])
+            listItem = QtGui.QListWidgetItem(row[0])
+            listItem.setData(QtCore.Qt.UserRole, row[1])
+            self.eventList.addItem(listItem)
         self.kegvolumeBox.addItem("50 L")
         self.kegvolumeBox.addItem("30 L")
         self.kegvolumeBox.addItem("20 L")
@@ -160,7 +164,10 @@ class serviceDialog(QtGui.QDialog, Ui_serviceDialog):
         kegvolume = str(self.kegvolumeBox.currentText()).strip(' L')
         window.db.newKeg(int(eventid.toInt()[0]), int(kegvolume) )
         print "added keg"
-        
+    
+    def acceptEventButtonClicked(self):
+        window.currentEvent = self.eventList.currentItem().data(QtCore.Qt.UserRole).toInt()[0]
+        window.statusBar().showMessage(window.db.getEventName(window.currentEvent) + ' event gewaehlt')
 
 def read_rfid():
     try:

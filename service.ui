@@ -26,6 +26,37 @@
      <height>181</height>
     </rect>
    </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="eventTab">
+    <attribute name="title">
+     <string>Event</string>
+    </attribute>
+    <widget class="QPushButton" name="acceptEventButton">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>10</y>
+       <width>71</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Yeah!</string>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="eventList">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>4</y>
+       <width>256</width>
+       <height>141</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
    <widget class="QWidget" name="keg">
     <attribute name="title">
      <string>new Keg</string>
@@ -89,11 +120,6 @@
       <string>neues Fass freigeben</string>
      </property>
     </widget>
-   </widget>
-   <widget class="QWidget" name="tab_2">
-    <attribute name="title">
-     <string>Tab 2</string>
-    </attribute>
    </widget>
   </widget>
  </widget>

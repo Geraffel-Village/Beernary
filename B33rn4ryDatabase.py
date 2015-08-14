@@ -2,6 +2,7 @@ class B33rn4ryDatabase():
   
   Database = None
 
+
   def __init__(self, dbtype='MYSQL'):
     if dbtype == 'MYSQL':
       self.Database = MysqlDatabase()
@@ -37,6 +38,9 @@ class B33rn4ryDatabase():
   def newKeg(self, event, volume):
     self.Database.newKeg(event, volume)
 
+  def getEventName(self, eventid):
+    return self.Database.getEventName(eventid)
+  
 class ConsoleDatabase():
 
   validUsers = {
@@ -110,4 +114,9 @@ class MysqlDatabase():
       raise RuntimeError("wrong # of kegs for this event")
     self.cursor.execute ("Insert INTO `keg` (eventid, volume) VALUES (%d, %d)" % (event, volume) )
     self.db.commit()
+
+  def getEventName(self, eventid):
+    self.cursor.execute ("SELECT `name` FROM `event` WHERE eventid=%d;" % eventid )
+    return self.cursor.fetchone()[0]
+    
     
