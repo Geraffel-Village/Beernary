@@ -41,8 +41,9 @@ DROP TABLE IF EXISTS `event`;
 CREATE TABLE `event` (
   `eventid` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `selected` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`eventid`),
-  UNIQUE KEY `name` (`name`)
+  UNIQUE KEY `name` (`name`),
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

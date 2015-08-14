@@ -41,6 +41,9 @@ class B33rn4ryDatabase():
   def getEventName(self, eventid):
     return self.Database.getEventName(eventid)
   
+  def setEventActive(self, eventid):
+    self.Database.setEventActive(eventid)
+  
 class ConsoleDatabase():
 
   validUsers = {
@@ -119,4 +122,19 @@ class MysqlDatabase():
     self.cursor.execute ("SELECT `name` FROM `event` WHERE eventid=%d;" % eventid )
     return self.cursor.fetchone()[0]
     
-    
+  def setEventActive(self, eventid):
+    self.cursor.execute("SELECT `eventid` FROM `event` where selected=true;")
+    if self.cursor.rowcount == 1:
+      if self.cursor.fetchone()[0] == eventid:
+#        print "all setup"
+        pass
+      else:
+#        print "deselect all trues"
+        self.cursor.execute("UPDATE `event` SET `selected`=False WHERE selected=True;")
+    else:
+#      print "set all false, setting only event"
+      self.cursor.execute("UPDATE `event` SET `selected`=False WHERE eventid <> %d;" % eventid)
+#    print "setting only event"
+    self.cursor.execute("UPDATE `event` SET `selected`=True WHERE eventid = %d;" % eventid)
+    self.db.commit()
+

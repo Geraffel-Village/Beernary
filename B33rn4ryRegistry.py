@@ -167,6 +167,7 @@ class serviceDialog(QtGui.QDialog, Ui_serviceDialog):
     
     def acceptEventButtonClicked(self):
         window.currentEvent = self.eventList.currentItem().data(QtCore.Qt.UserRole).toInt()[0]
+        window.db.setEventActive(window.currentEvent)
         window.statusBar().showMessage(window.db.getEventName(window.currentEvent) + ' event gewaehlt')
 
 def read_rfid():
