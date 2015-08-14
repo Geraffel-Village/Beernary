@@ -1,3 +1,5 @@
+import B33rn4ryExceptions
+
 class B33rn4ryDatabase():
   
   Database = None
@@ -37,12 +39,18 @@ class B33rn4ryDatabase():
 
   def newKeg(self, event, volume):
     self.Database.newKeg(event, volume)
+  
+  def getCurrentKeg(self, eventid):
+    return self.Database.getCurrentKeg(eventid)
 
   def getEventName(self, eventid):
     return self.Database.getEventName(eventid)
   
   def setEventActive(self, eventid):
     self.Database.setEventActive(eventid)
+  
+  def getActiveEvent(self):
+    return self.Database.getActiveEvent()
   
 class ConsoleDatabase():
 
@@ -117,6 +125,13 @@ class MysqlDatabase():
       raise RuntimeError("wrong # of kegs for this event")
     self.cursor.execute ("Insert INTO `keg` (eventid, volume) VALUES (%d, %d)" % (event, volume) )
     self.db.commit()
+  
+  def getCurrentKeg(self, eventid):
+    self.cursor.execute("SELECT kegid FROM `keg` WHERE eventid = %d AND isEmpty=False;")
+    if self.cursor.rowcount != 1:
+      raise B33rn4ryKegError("invalid # of Kegs active")
+    assert self.cursor.rowcount == 1
+    return self.cursor.fetchone()[0]
 
   def getEventName(self, eventid):
     self.cursor.execute ("SELECT `name` FROM `event` WHERE eventid=%d;" % eventid )
@@ -138,3 +153,11 @@ class MysqlDatabase():
     self.cursor.execute("UPDATE `event` SET `selected`=True WHERE eventid = %d;" % eventid)
     self.db.commit()
 
+  def getActiveEvent(self):
+    self.cursor.execute("SELECT eventid, name FROM `event` where selected=true;")
+    if self.cursor.rowcount != 1:
+      raise B33rn4rySetupEventError("faulty configuration in Event-setup")
+    
+    assert self.cursor.rowcount == 1
+    return self.cursor.fetchone()
+  
