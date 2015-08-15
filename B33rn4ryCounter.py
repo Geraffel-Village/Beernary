@@ -134,15 +134,6 @@ def main():
     ID = ""
     pID = ""
 
-    try:
-      kegID = db.getCurrentKeg(currentEvent[0])
-      if oldKegID != kegID:
-        currentKeg.setPulses(db.getKegPulses(kegID))
-	oldKegID = kegID
-    except B33rn4ryExceptions.B33rn4ryKegError as error:
-      lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
-      time.sleep(2)
-
     ID = read_rfid()
 
     if ID:
@@ -183,6 +174,16 @@ def main():
       lcd_string("                    ",LCD_LINE_3,1)
       lcd_string("Waiting for Geeks",LCD_LINE_4,1)
       IDtmp = ""
+
+    try:
+      kegID = db.getCurrentKeg(currentEvent[0])
+      if oldKegID != kegID:
+        currentKeg.setPulses(db.getKegPulses(kegID))
+	oldKegID = kegID
+    except B33rn4ryExceptions.B33rn4ryKegError as error:
+      lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
+      time.sleep(2)
+
 
 def read_rfid():
   try:
