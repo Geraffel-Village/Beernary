@@ -41,6 +41,8 @@ RFID_END = "\x02"
 SERIAL_DEVICE = "/dev/ttyUSB0"
 BAUDRATE = 9600
 
+DEBUG=False
+
 class beerKeg:
   __pulses__ = 0
 
@@ -56,7 +58,7 @@ class beerKeg:
       self.__pulses__ += 1
     else:
       self.__pulses__ += 1
-    print self.getPulses()
+    if DEBUG: print self.getPulses()
 
   def getPulses(self):
     return self.__pulses__
@@ -152,7 +154,7 @@ def main():
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
           valve(True)
           IDtmp = ID
-#	  print "drafting: Event: %d; keg: %d" % (currentEvent[0], kegID)
+	  if DEBUG: print "drafting: Event: %d; keg: %d" % (currentEvent[0], kegID)
         else:
           if (IdPulsesStart is not None):
             db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)

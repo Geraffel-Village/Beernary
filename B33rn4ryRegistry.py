@@ -163,7 +163,7 @@ class serviceDialog(QtGui.QDialog, Ui_serviceDialog):
         eventid = self.eventBox.itemData(self.eventBox.currentIndex())
         kegvolume = str(self.kegvolumeBox.currentText()).strip(' L')
         window.db.newKeg(int(eventid.toInt()[0]), int(kegvolume) )
-        print "added keg"
+        window.statusBar().showMessage("new keg added for this event")
     
     def acceptEventButtonClicked(self):
         window.currentEvent = self.eventList.currentItem().data(QtCore.Qt.UserRole).toInt()[0]
