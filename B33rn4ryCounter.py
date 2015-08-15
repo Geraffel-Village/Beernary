@@ -6,7 +6,7 @@ import serial
 import time
 import datetime
 import os
-import B33rn4ryDatabase
+import B33rn4ryDatabase, B33rn4ryExceptions
 
 # Define GPIO mapping
 LCD_RS = 25
@@ -47,6 +47,9 @@ class beerKeg:
   def __init__(self):
     self.__pulses__ = 0
 
+  def setPulses(self, pulses):
+    self.__pulses__ = pulses
+
   # just to habdle the "channel"-argument given by callback-function
   def newPulse(self, *args):
     if len(args) == 0:
@@ -65,6 +68,7 @@ def main():
   IdPulsesStart = None
   currentEvent = None
   kegID = None
+  oldKegID = kegID
 
   currentKeg = beerKeg()
 
@@ -87,9 +91,9 @@ def main():
   db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL')
   try:
     currentEvent = db.getActiveEvent()
-  except B33rn4rySetupEventError as error:
+  except B33rn4ryExceptions.B33rn4rySetupEventError as error:
     lcd_string("Event-setup wrong !!!!",LCD_LINE_2,1)
-    sleep 2
+    time.sleep(2)
     
 
 #  lcd_backlight(True)
@@ -110,11 +114,19 @@ def main():
   lcd_string("     Welcome to     ",LCD_LINE_3,1)
   lcd_string(currentEvent[1].zfill(16),LCD_LINE_4,1)
 
-  sleep(2)
+  time.sleep(2)
   
   lcd_string("Idle",LCD_LINE_2,1)
   lcd_string("                    ",LCD_LINE_3,1)
   lcd_string("Waiting for Geeks",LCD_LINE_4,1)
+
+  try:
+    kegID = db.getCurrentKeg(currentEvent[0])
+    currentKeg.setPulses(db.getKegPulses(kegID))
+    oldKegID = kegID
+  except B33rn4ryExceptions.B33rn4ryKegError as error:
+    lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
+    time.sleep(2)
 
   while True:
     
@@ -123,10 +135,13 @@ def main():
     pID = ""
 
     try:
-      kegID = db.getCurrentKeg(currentEvent)
-    except B33rn4ryKegError error:
+      kegID = db.getCurrentKeg(currentEvent[0])
+      if oldKegID != kegID:
+        currentKeg.setPulses(db.getKegPulses(kegID))
+	oldKegID = kegID
+    except B33rn4ryExceptions.B33rn4ryKegError as error:
       lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
-      sleep 2
+      time.sleep(2)
 
     ID = read_rfid()
 
@@ -146,6 +161,7 @@ def main():
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
           valve(True)
           IDtmp = ID
+#	  print "drafting: Event: %d; keg: %d" % (currentEvent[0], kegID)
         else:
           if (IdPulsesStart is not None):
             db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)

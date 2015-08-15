@@ -96,8 +96,8 @@ class MysqlDatabase():
     print "user drafted %d pulses" % pulses
 
   def getKegPulses(self, kegNum):
-    self.cursor.execute ("SELECT pulses FROM `keg` WHERE kegid=%d") % kegNum
-    return self.cursor.fetchone()
+    self.cursor.execute ("SELECT pulses FROM `keg` WHERE kegid=%d" % kegNum)
+    return self.cursor.fetchone()[0]
     
   def setKegPulses(self, kegNum, pulses):
     self.cursor.execute ("UPDATE `keg` SET pulses=%d WHERE kegid=%d" % (pulses, kegNum) )
@@ -127,9 +127,9 @@ class MysqlDatabase():
     self.db.commit()
   
   def getCurrentKeg(self, eventid):
-    self.cursor.execute("SELECT kegid FROM `keg` WHERE eventid = %d AND isEmpty=False;")
+    self.cursor.execute("SELECT kegid FROM `keg` WHERE eventid = %d AND isEmpty=False;" % eventid)
     if self.cursor.rowcount != 1:
-      raise B33rn4ryKegError("invalid # of Kegs active")
+      raise B33rn4ryExceptions.B33rn4ryKegError("invalid # of Kegs active")
     assert self.cursor.rowcount == 1
     return self.cursor.fetchone()[0]
 
@@ -156,7 +156,7 @@ class MysqlDatabase():
   def getActiveEvent(self):
     self.cursor.execute("SELECT eventid, name FROM `event` where selected=true;")
     if self.cursor.rowcount != 1:
-      raise B33rn4rySetupEventError("faulty configuration in Event-setup")
+      raise B33rn4ryExceptions.B33rn4rySetupEventError("faulty configuration in Event-setup")
     
     assert self.cursor.rowcount == 1
     return self.cursor.fetchone()
