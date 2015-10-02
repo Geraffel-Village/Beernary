@@ -79,7 +79,8 @@ class MysqlDatabase():
     import MySQLdb
 
     # Connect to mySQL db
-    self.db = MySQLdb.connect(host="151.217.58.42", user="b33rn4ry", passwd="b33rn4ry", db="b33rn4rycounter")
+    #self.db = MySQLdb.connect(host="151.217.58.42", user="b33rn4ry", passwd="b33rn4ry", db="b33rn4rycounter")
+    self.db = MySQLdb.connect(host="localhost", user="b33rn4ry", passwd="b33rn4ry", db="b33rn4rycounter")
     self.cursor=self.db.cursor()
     
   def checkUser(self, userID):

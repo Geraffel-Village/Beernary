@@ -41,8 +41,6 @@ RFID_END = "\x02"
 SERIAL_DEVICE = "/dev/ttyUSB0"
 BAUDRATE = 9600
 
-DEBUG=False
-
 class beerKeg:
   __pulses__ = 0
 
@@ -58,7 +56,7 @@ class beerKeg:
       self.__pulses__ += 1
     else:
       self.__pulses__ += 1
-    if DEBUG: print self.getPulses()
+    print self.getPulses()
 
   def getPulses(self):
     return self.__pulses__
@@ -136,6 +134,15 @@ def main():
     ID = ""
     pID = ""
 
+    try:
+      kegID = db.getCurrentKeg(currentEvent[0])
+      if oldKegID != kegID:
+        currentKeg.setPulses(db.getKegPulses(kegID))
+	oldKegID = kegID
+    except B33rn4ryExceptions.B33rn4ryKegError as error:
+      lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
+      time.sleep(2)
+
     ID = read_rfid()
 
     if ID:
@@ -154,7 +161,7 @@ def main():
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
           valve(True)
           IDtmp = ID
-	  if DEBUG: print "drafting: Event: %d; keg: %d" % (currentEvent[0], kegID)
+	  print "drafting: Event: %d; keg: %d" % (currentEvent[0], kegID)
         else:
           if (IdPulsesStart is not None):
             db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)
@@ -176,16 +183,6 @@ def main():
       lcd_string("                    ",LCD_LINE_3,1)
       lcd_string("Waiting for Geeks",LCD_LINE_4,1)
       IDtmp = ""
-
-    try:
-      kegID = db.getCurrentKeg(currentEvent[0])
-      if oldKegID != kegID:
-        currentKeg.setPulses(db.getKegPulses(kegID))
-	oldKegID = kegID
-    except B33rn4ryExceptions.B33rn4ryKegError as error:
-      lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
-      time.sleep(2)
-
 
 def read_rfid():
   try:
