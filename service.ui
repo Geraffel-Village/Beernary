@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>serviceDialog</class>
+ <widget class="QDialog" name="serviceDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>355</width>
+    <height>196</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Service</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>../../../.designer/backup/icon.png</normaloff>../../../.designer/backup/icon.png</iconset>
+  </property>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>10</y>
+     <width>351</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <widget class="QWidget" name="eventTab">
+    <attribute name="title">
+     <string>Event</string>
+    </attribute>
+    <widget class="QPushButton" name="acceptEventButton">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>10</y>
+       <width>71</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Yeah!</string>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="eventList">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>4</y>
+       <width>256</width>
+       <height>141</height>
+      </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="keg">
+    <attribute name="title">
+     <string>new Keg</string>
+    </attribute>
+    <widget class="QComboBox" name="eventBox">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>10</y>
+       <width>201</width>
+       <height>27</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>51</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Event:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>50</y>
+       <width>121</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>new Keg volume:</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="kegvolumeBox">
+     <property name="geometry">
+      <rect>
+       <x>135</x>
+       <y>44</y>
+       <width>71</width>
+       <height>30</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="newKegButton">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>80</y>
+       <width>171</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>neues Fass freigeben</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

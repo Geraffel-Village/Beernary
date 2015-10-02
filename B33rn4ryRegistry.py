@@ -1,8 +1,10 @@
+#!/usr/bin/python
+
 import sys
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QDialog
 from PyQt4.QtSql import *
-import MySQLdb
+import B33rn4ryDatabase
 import serial
 
 # RFID start and end flags
@@ -15,8 +17,13 @@ BAUDRATE = 9600
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType("B33rn4ryRegistry.ui")
 Ui_newUserDialog, QtBaseClass = uic.loadUiType("newUser.ui")
+Ui_serviceDialog, QtBaseClass = uic.loadUiType("service.ui")
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
+    
+    db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL')
+    currentEvent = None
+    
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
@@ -26,19 +33,15 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.actionQuit.triggered.connect(self.exitButtonClicked)
         self.actionNewUser.triggered.connect(self.newUser)
         self.delUserButton.clicked.connect(self.deleteUser)
-        global db
-        try:
-            db = MySQLdb.connect("10.99.0.188","b33rn4ry","b33rn4ry","b33rn4rycounter" )
-        except:
-            self.statusBar().showMessage('Error connecting database!')
+        self.serviceButton.clicked.connect(self.serviceButtonClicked)
+        if self.db:
+          self.statusBar().showMessage('Error connecting database!')
         else:
-            self.statusBar().showMessage('Database connection established!')
+          self.statusBar().showMessage('Database connection established!')
         global headernames
         headernames = ["IDhex", "ID", "Name", "Timestamp"]
         self.userTable.setHorizontalHeaderLabels(headernames)
-        if (db):
-            global cursor
-            cursor = db.cursor()
+        if (self.db):
             self.refreshUserTable()
         self.refreshButton.clicked.connect(self.refreshUserTable)
 
@@ -56,9 +59,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     def refreshUserTable(self):
         self.userTable.setRowCount(0)
         self.userTable.setHorizontalHeaderLabels(headernames)
-        cursor.execute("SELECT `id`, `name`, `timestamp` FROM users WHERE 1 ORDER BY `timestamp` DESC;")
-        db.commit()
-        rows = cursor.fetchall() 
+        rows = self.db.getUsers()
         for row in rows:
             self.userTable.insertRow(self.userTable.rowCount()) 
             itm1 = QtGui.QTableWidgetItem(str(row[0]), 0) 
@@ -93,7 +94,12 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         newUserWindow.show()
         newUserWindow.readRFID()
 
+    def serviceButtonClicked(self):
+        form = QtGui.QDialog()
+        serviceWindow.show()
+
 class newUserDialog(QtGui.QDialog, Ui_newUserDialog):
+    
     def __init__(self, parent=MainWindow):
         QtGui.QDialog.__init__(self)
         Ui_newUserDialog.__init__(self)
@@ -110,16 +116,11 @@ class newUserDialog(QtGui.QDialog, Ui_newUserDialog):
             palette.setColor(QtGui.QPalette.Foreground,QtCore.Qt.red)
             window.labelMessage.setText("Error: User name or RFID# empty!")
         else:
-            cursor.execute("SELECT COUNT(*) FROM `users` WHERE `id` = '%s';" % ID)
-            result = cursor.fetchone()
-            if result[0] > 0:
-                palette.setColor(QtGui.QPalette.Foreground,QtCore.Qt.red)
-                window.labelMessage.setText("Error: User ID exists!")
-            else:
-                cursor.execute("INSERT IGNORE INTO `users` SET `id`='%s', `name` = '%s';" % (ID, username))
-                db.commit()
-                palette.setColor(QtGui.QPalette.Foreground,QtCore.Qt.green)
-                window.labelMessage.setText("User added succesfully!")
+            window.db.addUser(ID, username)
+#                palette.setColor(QtGui.QPalette.Foreground,QtCore.Qt.red)
+#                window.labelMessage.setText("Error: User ID exists!")
+            palette.setColor(QtGui.QPalette.Foreground,QtCore.Qt.green)
+            window.labelMessage.setText("User added succesfully!")
             window.refreshUserTable()
         window.labelMessage.setPalette(palette)
         self.clearFields()
@@ -137,6 +138,37 @@ class newUserDialog(QtGui.QDialog, Ui_newUserDialog):
     def clearFields(self):
         self.lineRFIDno.setText("")
         self.lineUserName.setText("")
+
+class serviceDialog(QtGui.QDialog, Ui_serviceDialog):
+
+    def __init__(self, parent=MainWindow):
+        QtGui.QDialog.__init__(self)
+        Ui_serviceDialog.__init__(self)
+        self.setupUi(self)
+        self.newKegButton.clicked.connect(self.addKeg)
+        self.acceptEventButton.clicked.connect(self.acceptEventButtonClicked)
+        rows = window.db.getEvents()
+        for row in rows:
+            self.eventBox.addItem(row[0], row[1])
+            listItem = QtGui.QListWidgetItem(row[0])
+            listItem.setData(QtCore.Qt.UserRole, row[1])
+            self.eventList.addItem(listItem)
+        self.kegvolumeBox.addItem("50 L")
+        self.kegvolumeBox.addItem("30 L")
+        self.kegvolumeBox.addItem("20 L")
+        self.kegvolumeBox.addItem("15 L")
+        self.kegvolumeBox.addItem("10 L")
+    
+    def addKeg(self):
+        eventid = self.eventBox.itemData(self.eventBox.currentIndex())
+        kegvolume = str(self.kegvolumeBox.currentText()).strip(' L')
+        window.db.newKeg(int(eventid.toInt()[0]), int(kegvolume) )
+        window.statusBar().showMessage("new keg added for this event")
+    
+    def acceptEventButtonClicked(self):
+        window.currentEvent = self.eventList.currentItem().data(QtCore.Qt.UserRole).toInt()[0]
+        window.db.setEventActive(window.currentEvent)
+        window.statusBar().showMessage(window.db.getEventName(window.currentEvent) + ' event gewaehlt')
 
 def read_rfid():
     try:
@@ -158,4 +190,5 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     newUserWindow = newUserDialog()
+    serviceWindow = serviceDialog()
     sys.exit(app.exec_())
