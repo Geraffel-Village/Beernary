@@ -6,7 +6,7 @@ import serial
 import time
 import datetime
 import os, syslog
-import B33rn4ryDatabase, B33rn4ryExceptions
+import B33rn4ryDatabase, B33rn4ryExceptions, B33rn4ryReader
 
 # Define GPIO mapping
 LCD_RS = 25
@@ -39,7 +39,9 @@ RFID_END = "\x02"
 
 # Serial bitrate for RFID reader
 SERIAL_DEVICE = "/dev/ttyUSB0"
-BAUDRATE = 9600
+
+reader = B33rn4ryReader.UsbRfid(SERIAL_DEVICE)
+
 
 class beerKeg:
   __pulses__ = 0
@@ -96,6 +98,7 @@ def main():
     time.sleep(2)
     
 
+  reader.initialize()
 #  lcd_backlight(True)
 #  time.sleep(0.5)
 #  lcd_string("Uncomressing kernel...",LCD_LINE_1,1)
@@ -149,7 +152,7 @@ def main():
       syslog.syslog(syslog.LOG_ERR, "Keg-setup wrong !!!!")
       time.sleep(2)
 
-    ID = read_rfid()
+    ID = reader.read_rfid()
 
     print("ID read:", ID)
     if ID:
@@ -193,19 +196,6 @@ def main():
       lcd_string("                    ",LCD_LINE_3,1)
       lcd_string("Waiting for Geeks",LCD_LINE_4,1)
       IDtmp = ""
-
-def read_rfid():
-  try:
-    ser = serial.Serial(SERIAL_DEVICE, BAUDRATE, timeout=1) 
-  except serial.serialutil.SerialException:
-    print "Could not open serial device " +SERIAL_DEVICE
-  data = ser.read(1)
-  while data != RFID_START and data != '':
-      data = ser.read(1)
-  data = ser.read(10)
-  ser.close()
-  if data != '':
-      return data
 
 def lcd_init():
   # Initialise display
