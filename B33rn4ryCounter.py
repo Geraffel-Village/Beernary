@@ -5,7 +5,7 @@ import RPi.GPIO as GPIO
 import serial
 import time
 import datetime
-import os
+import os, syslog
 import B33rn4ryDatabase, B33rn4ryExceptions
 
 # Define GPIO mapping
@@ -108,6 +108,8 @@ def main():
 #  lcd_string("ready!",LCD_LINE_4,1)
 #  time.sleep(3)
 #  lcd_backlight(False)
+
+  syslog.syslog("B33rn4ry Counter starting")
  
   lcd_string("B33rn4ry Counter",LCD_LINE_1,1)
   lcd_string("                    ",LCD_LINE_2,1)
@@ -126,7 +128,10 @@ def main():
     oldKegID = kegID
   except B33rn4ryExceptions.B33rn4ryKegError as error:
     lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
+    syslog.syslog(syslog.LOG_ERR, "Keg-setup wrong !!!!")
     time.sleep(2)
+
+  syslog.syslog("B33rn4ry Counter ready")
 
   while True:
     
@@ -141,16 +146,19 @@ def main():
 	oldKegID = kegID
     except B33rn4ryExceptions.B33rn4ryKegError as error:
       lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
+      syslog.syslog(syslog.LOG_ERR, "Keg-setup wrong !!!!")
       time.sleep(2)
 
     ID = read_rfid()
 
+    print("ID read:", ID)
     if ID:
       if ID != IDtmp:
         pID = str(int(ID[2:], 16))
         lcd_backlight(True)
         lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
         lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
+        syslog.syslog(syslog.LOG_DEBUG, "read ID:"+ pID.zfill(10))
         result = db.checkUser(ID)
         if result is not None:
           if (IdPulsesStart is None):
@@ -158,6 +166,7 @@ def main():
           lcd_string("User: "+str(result[0]),LCD_LINE_3,1)
           #lcd_string("ACCESS GRANTED!",LCD_LINE_3,1)
           lcd_string("Go ahead and draw a beer!",LCD_LINE_4,1)
+          syslog.syslog("ACCESS GRANTED!")
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
           valve(True)
           IDtmp = ID
@@ -169,6 +178,7 @@ def main():
           IdPulsesStart = None
           lcd_string("ACCESS DENIED!",LCD_LINE_3,1)
           lcd_string("                    ",LCD_LINE_4,1)
+          syslog.syslog("ACCESS DENIED!")
           #os.system('mpg321 sadtrombone.mp3')
 
     else:
@@ -289,6 +299,7 @@ if __name__ == '__main__':
   except KeyboardInterrupt:
     lcd_byte(0x01, LCD_CMD)
     lcd_string("Goodbye!",LCD_LINE_1,2)
+    syslog.syslog("Goodbye!")
   else:
     raise
   finally:
