@@ -38,9 +38,9 @@ RFID_START = "\x04"
 RFID_END = "\x02"
 
 # Serial bitrate for RFID reader
-SERIAL_DEVICE = "/dev/ttyUSB0"
+SERIAL_DEVICE = "/dev/ttyAMA0"
 
-reader = B33rn4ryReader.UsbRfid(SERIAL_DEVICE)
+reader = B33rn4ryReader.SerialRfid(SERIAL_DEVICE)
 
 
 class beerKeg:
@@ -157,11 +157,12 @@ def main():
     print("ID read:", ID)
     if ID:
       if ID != IDtmp:
-        pID = str(int(ID[2:], 16))
+#        pID = str(int(ID[2:], 16))
+        pID = ID
         lcd_backlight(True)
-        lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
-        lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
-        syslog.syslog(syslog.LOG_DEBUG, "read ID:"+ pID.zfill(10))
+#        lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
+#        lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
+#        syslog.syslog(syslog.LOG_DEBUG, "read ID:"+ pID)
         result = db.checkUser(ID)
         if result is not None:
           if (IdPulsesStart is None):
