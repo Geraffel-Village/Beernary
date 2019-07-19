@@ -60,7 +60,7 @@ class SerialRfid:
       self.ser = serial.Serial(self.SERIAL_DEVICE, self.BAUDRATE, timeout=1) 
     except serial.serialutil.SerialException:
       syslog.syslog(syslog.LOG_ERR, "Could not open serial device " + self.SERIAL_DEVICE);
-    syslog.syslog("USB-RFID reader initialized")
+    syslog.syslog("Serial-RFID reader initialized")
 
   def read_rfid(self):
     result = ''
