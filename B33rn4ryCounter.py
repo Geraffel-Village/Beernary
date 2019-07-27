@@ -5,8 +5,8 @@ import RPi.GPIO as GPIO
 import serial
 import time
 import datetime
-import os
-import B33rn4ryDatabase, B33rn4ryExceptions
+import os, syslog
+import B33rn4ryDatabase, B33rn4ryExceptions, B33rn4ryReader
 
 # Define GPIO mapping
 LCD_RS = 25
@@ -38,8 +38,10 @@ RFID_START = "\x04"
 RFID_END = "\x02"
 
 # Serial bitrate for RFID reader
-SERIAL_DEVICE = "/dev/ttyUSB0"
-BAUDRATE = 9600
+SERIAL_DEVICE = "/dev/ttyAMA0"
+
+reader = B33rn4ryReader.SerialRfid(SERIAL_DEVICE)
+
 
 class beerKeg:
   __pulses__ = 0
@@ -96,6 +98,7 @@ def main():
     time.sleep(2)
     
 
+  reader.initialize()
 #  lcd_backlight(True)
 #  time.sleep(0.5)
 #  lcd_string("Uncomressing kernel...",LCD_LINE_1,1)
@@ -108,6 +111,8 @@ def main():
 #  lcd_string("ready!",LCD_LINE_4,1)
 #  time.sleep(3)
 #  lcd_backlight(False)
+
+  syslog.syslog("B33rn4ry Counter starting")
  
   lcd_string("B33rn4ry Counter",LCD_LINE_1,1)
   lcd_string("                    ",LCD_LINE_2,1)
@@ -126,7 +131,10 @@ def main():
     oldKegID = kegID
   except B33rn4ryExceptions.B33rn4ryKegError as error:
     lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
+    syslog.syslog(syslog.LOG_ERR, "Keg-setup wrong !!!!")
     time.sleep(2)
+
+  syslog.syslog("B33rn4ry Counter ready")
 
   while True:
     
@@ -141,16 +149,20 @@ def main():
 	oldKegID = kegID
     except B33rn4ryExceptions.B33rn4ryKegError as error:
       lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
+      syslog.syslog(syslog.LOG_ERR, "Keg-setup wrong !!!!")
       time.sleep(2)
 
-    ID = read_rfid()
+    ID = reader.read_rfid()
 
+    print("ID read:", ID)
     if ID:
       if ID != IDtmp:
-        pID = str(int(ID[2:], 16))
+#        pID = str(int(ID[2:], 16))
+        pID = ID
         lcd_backlight(True)
-        lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
-        lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
+#        lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
+#        lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
+#        syslog.syslog(syslog.LOG_DEBUG, "read ID:"+ pID)
         result = db.checkUser(ID)
         if result is not None:
           if (IdPulsesStart is None):
@@ -158,6 +170,7 @@ def main():
           lcd_string("User: "+str(result[0]),LCD_LINE_3,1)
           #lcd_string("ACCESS GRANTED!",LCD_LINE_3,1)
           lcd_string("Go ahead and draw a beer!",LCD_LINE_4,1)
+          syslog.syslog("ACCESS GRANTED!")
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
           valve(True)
           IDtmp = ID
@@ -169,6 +182,7 @@ def main():
           IdPulsesStart = None
           lcd_string("ACCESS DENIED!",LCD_LINE_3,1)
           lcd_string("                    ",LCD_LINE_4,1)
+          syslog.syslog("ACCESS DENIED!")
           #os.system('mpg321 sadtrombone.mp3')
 
     else:
@@ -183,19 +197,6 @@ def main():
       lcd_string("                    ",LCD_LINE_3,1)
       lcd_string("Waiting for Geeks",LCD_LINE_4,1)
       IDtmp = ""
-
-def read_rfid():
-  try:
-    ser = serial.Serial(SERIAL_DEVICE, BAUDRATE, timeout=1) 
-  except serial.serialutil.SerialException:
-    print "Could not open serial device " +SERIAL_DEVICE
-  data = ser.read(1)
-  while data != RFID_START and data != '':
-      data = ser.read(1)
-  data = ser.read(10)
-  ser.close()
-  if data != '':
-      return data
 
 def lcd_init():
   # Initialise display
@@ -289,6 +290,7 @@ if __name__ == '__main__':
   except KeyboardInterrupt:
     lcd_byte(0x01, LCD_CMD)
     lcd_string("Goodbye!",LCD_LINE_1,2)
+    syslog.syslog("Goodbye!")
   else:
     raise
   finally:
