@@ -1,4 +1,3 @@
-#import
 import serial
 import syslog
 import B33rn4ryExceptions
@@ -141,4 +140,3 @@ class SerialRfid:
 
   def close(self):
     self.ser.close()
-
