@@ -1,11 +1,22 @@
 import B33rn4ryExceptions
 
 class B33rn4ryDatabase():
-  
+  """
+  This class is the interface to to have access the underlaying database.
+  It currently supports only "MYSQL" (for production), but there is also a
+  basic-type "CONSOLE" (for debugging / development). This class provides 
+  enough abstraction, that the counter and the registry can manage all 
+  relevant tasks by it.
+  """
+
   Database = None
 
 
   def __init__(self, dbtype='MYSQL'):
+    """
+    Initializes the basic database-connection, by default the "MYSQL"-type is used.
+    The reference to the current database is kept in the private variable "Database".
+    """
     if dbtype == 'MYSQL':
       self.Database = MysqlDatabase()
     elif dbtype == 'CONSOLE':
@@ -17,39 +28,72 @@ class B33rn4ryDatabase():
     return self.Database.checkUser(userID)
   
   def getUsers(self):
+    """
+    Abstract method to return a list of all users from the database.
+    """
     return self.Database.getUsers()
 
   def storeDraft(self, userID, pulses):
     self.Database.storeDraft(userID, pulses)
 
   def getKegPulses(self, kegNum):
+    """
+    Abstract method to return the sum of counts for the provided keg.
+    """
     return self.Database.getKegPulses(kegNum)
     
   def setKegPulses(self, kegNum, pulses):
+    """
+    Abstract method to set the absolute number of counts for a keg.
+    """
     self.Database.setKegPulses(kegNum, pulses)
       
   def userConsumed(self):
     return -1
 
   def getEvents(self):
+    """
+    Abstract method to return a list of all events defined in the database.
+    """
     return self.Database.getEvents()
   
   def addUser(self, ID, newUsername):
+    """
+    Abstract method to setup a new user with "newUsername" and transponderid "ID" 
+    in the database.
+    """
     return self.Database.addUser(ID, newUsername)
 
   def newKeg(self, event, volume):
+    """
+    Abstract method to define a new full keg in th database and assign it to event "event".
+    "Volume" is a literal string, defining the nominal amount of content, e.g. "50l", "20l".
+    """
     self.Database.newKeg(event, volume)
   
   def getCurrentKeg(self, eventid):
+    """
+    Abstract method to return the currently active keg of the event "eventid".
+    """
     return self.Database.getCurrentKeg(eventid)
 
   def getEventName(self, eventid):
+    """
+    Abstract method to return the name of the event "eventid".
+    """
     return self.Database.getEventName(eventid)
   
   def setEventActive(self, eventid):
+    """
+    Abstract method to set the event "eventid" as the only active event in the list of all
+    defined events.
+    """
     self.Database.setEventActive(eventid)
   
   def getActiveEvent(self):
+    """
+    Abstract method to return the eventid of the currently active event.
+    """
     return self.Database.getActiveEvent()
   
 class ConsoleDatabase():
