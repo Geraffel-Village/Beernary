@@ -11,7 +11,7 @@ class B33rn4ryDatabase():
     elif dbtype == 'CONSOLE':
       self.Database = ConsoleDatabase()
     else:
-      raise NotImplementedError
+      raise NotImplementedError("unknown databse-type")
     
   def checkUser(self, userID):
     return self.Database.checkUser(userID)
