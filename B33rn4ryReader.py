@@ -1,6 +1,6 @@
 import serial
 import syslog
-import B33rn4ryExceptions
+from . import B33rn4ryExceptions
 import binascii
 
 class UsbRfid:
@@ -81,7 +81,7 @@ class SerialRfid:
         try:
           result = self._read_tagdata_()
         except ValueError:
-          print "invalid reading"
+          print("invalid reading")
 #        self.ser.reset_input_buffer()
           self.ser.flushInput()
           self.state = self.STATE_IDLE
@@ -113,13 +113,13 @@ class SerialRfid:
     cksum_read_ascii = self.ser.read(1)
 #    data="62e3086ced"
 #    cksum_read_ascii = 0x08
-    print "debug: data:" + data + "; cksum:" + cksum_read_ascii
+    print("debug: data:" + data + "; cksum:" + cksum_read_ascii)
 #        print "debug: " + hex(int(data, 16))
 #        print str(binascii.a2b_hex(data))
     for x in range(0,5):
       # copy 2 bytes of ascii-string (10 chars; 5 bytes)
       byte = data[x*2:x*2+2]
-      print byte
+      print(byte)
       # store read data in tagdata[0..4] as interger
       tagdata.append(int(byte, 16))
 #      print binascii.a2b_hex(hnibble+lnibble)
@@ -130,12 +130,12 @@ class SerialRfid:
 
     for x in tagdata:
       cksum_calc = cksum_calc ^ x
-      print "cksum: %x" % cksum_calc
+      print("cksum: %x" % cksum_calc)
     if cksum_calc != cksum_read:
-      print "cksum do not match"
+      print("cksum do not match")
     else:
       result = data
-    print "data:" + binascii.hexlify(data)
+    print("data:" + binascii.hexlify(data))
     return result
 
   def close(self):

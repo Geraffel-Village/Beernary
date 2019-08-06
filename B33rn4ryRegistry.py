@@ -4,7 +4,7 @@ import sys
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QDialog
 from PyQt4.QtSql import *
-import B33rn4ryDatabase
+from . import B33rn4ryDatabase
 import serial
 
 # RFID start and end flags
@@ -174,7 +174,7 @@ def read_rfid():
     try:
         ser = serial.Serial(SERIAL_DEVICE, BAUDRATE, timeout=1)
     except serial.serialutil.SerialException:
-        print "Could not open serial device " +SERIAL_DEVICE
+        print("Could not open serial device " +SERIAL_DEVICE)
     data = ser.read(1)
     while data != RFID_START and data != '':
         data = ser.read(1)

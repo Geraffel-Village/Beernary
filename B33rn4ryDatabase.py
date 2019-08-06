@@ -1,4 +1,4 @@
-import B33rn4ryExceptions
+from . import B33rn4ryExceptions
 
 class B33rn4ryDatabase():
   
@@ -11,7 +11,7 @@ class B33rn4ryDatabase():
     elif dbtype == 'CONSOLE':
       self.Database = ConsoleDatabase()
     else:
-      raise(NotImplementedError("unknown databse-type"))
+      raise NotImplementedError
     
   def checkUser(self, userID):
     return self.Database.checkUser(userID)
@@ -68,7 +68,7 @@ class ConsoleDatabase():
     return -1
   
   def storeDraft(self, userID, pulses):
-    print "user drafted %d pulses" % pulses
+    print("user drafted %d pulses" % pulses)
 
 class MysqlDatabase():
 
@@ -93,7 +93,7 @@ class MysqlDatabase():
   def storeDraft(self, userID, pulses):
     self.cursor.execute ("Insert INTO `consume` (id, pulses) VALUES ('%s', %d)" % (userID, pulses) )  
     self.db.commit()
-    print "user drafted %d pulses" % pulses
+    print("user drafted %d pulses" % pulses)
 
   def getKegPulses(self, kegNum):
     self.cursor.execute ("SELECT pulses FROM `keg` WHERE kegid=%d" % kegNum)
@@ -120,7 +120,7 @@ class MysqlDatabase():
   def newKeg(self, event, volume):
     # mark current Keg as empty
     self.cursor.execute("UPDATE `keg` SET `isempty`=True WHERE eventid=%d AND isEmpty=False;" % (event))
-    if self.cursor.rowcount <> 1:
+    if self.cursor.rowcount != 1:
       self.db.rollback()
       raise RuntimeError("wrong # of kegs for this event")
     self.cursor.execute ("Insert INTO `keg` (eventid, volume) VALUES (%d, %d)" % (event, volume) )

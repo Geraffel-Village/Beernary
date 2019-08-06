@@ -5,7 +5,7 @@ import serial
 import time
 import datetime
 import os, syslog
-import B33rn4ryDatabase, B33rn4ryExceptions, B33rn4ryReader
+from . import B33rn4ryDatabase, B33rn4ryExceptions, B33rn4ryReader
 
 # Define GPIO mapping
 LCD_RS = 25
@@ -57,7 +57,7 @@ class beerKeg:
       self.__pulses__ += 1
     else:
       self.__pulses__ += 1
-    print self.getPulses()
+    print(self.getPulses())
 
   def getPulses(self):
     return self.__pulses__
@@ -153,7 +153,7 @@ def main():
 
     ID = reader.read_rfid()
 
-    print("ID read:", ID)
+    print(("ID read:", ID))
     if ID:
       if ID != IDtmp:
 #        pID = str(int(ID[2:], 16))
@@ -173,7 +173,7 @@ def main():
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
           valve(True)
           IDtmp = ID
-	  print "drafting: Event: %d; keg: %d" % (currentEvent[0], kegID)
+	  print("drafting: Event: %d; keg: %d" % (currentEvent[0], kegID))
         else:
           if (IdPulsesStart is not None):
             db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)
