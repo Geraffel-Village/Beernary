@@ -5,7 +5,7 @@ import serial
 import time
 import datetime
 import os, syslog
-from . import B33rn4ryDatabase, B33rn4ryExceptions, B33rn4ryReader
+import B33rn4ryDatabase, B33rn4ryExceptions, B33rn4ryReader
 
 # Define GPIO mapping
 LCD_RS = 25

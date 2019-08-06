@@ -1,6 +1,6 @@
 import serial
 import syslog
-from . import B33rn4ryExceptions
+import B33rn4ryExceptions
 import binascii
 
 class UsbRfid:

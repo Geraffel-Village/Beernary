@@ -1,4 +1,4 @@
-from . import B33rn4ryExceptions
+import B33rn4ryExceptions
 
 class B33rn4ryDatabase():
   
