@@ -145,7 +145,7 @@ def main():
       kegID = db.getCurrentKeg(currentEvent[0])
       if oldKegID != kegID:
         currentKeg.setPulses(db.getKegPulses(kegID))
-	oldKegID = kegID
+        oldKegID = kegID
     except B33rn4ryExceptions.B33rn4ryKegError as error:
       lcd_string("Keg-setup wrong !!!!",LCD_LINE_2,1)
       syslog.syslog(syslog.LOG_ERR, "Keg-setup wrong !!!!")
@@ -173,7 +173,7 @@ def main():
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
           valve(True)
           IDtmp = ID
-	  print("drafting: Event: %d; keg: %d" % (currentEvent[0], kegID))
+          print("drafting: Event: %d; keg: %d" % (currentEvent[0], kegID))
         else:
           if (IdPulsesStart is not None):
             db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)
