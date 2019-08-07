@@ -1,20 +1,17 @@
 #!/usr/bin/python
 
-import sys
+import sys, io, os
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QDialog
 from PyQt4.QtSql import *
 import B33rn4ryDatabase
 import serial
-import os, io
 import ConfigParser
 
 # RFID start and end flags
 RFID_START = "\x04"
 RFID_END = "\x02"
 
-# Serial bitrate for RFID reader
-SERIAL_DEVICE = "/dev/ttyUSB5"
 BAUDRATE = 9600
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType("B33rn4ryRegistry.ui")
@@ -23,20 +20,23 @@ Ui_serviceDialog, QtBaseClass = uic.loadUiType("service.ui")
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     
-    with open("config.ini") as f:
-        b33rn4ry_config = f.read()
-        config = ConfigParser.RawConfigParser(allow_no_value=True)
-        config.readfp(io.BytesIO(b33rn4ry_config))
-    
-        dbhost = config.get('mysql', 'host')
-        dbuser = config.get('mysql', 'user')
-        dbpass = config.get('mysql', 'passwd')
-        dbname = config.get('mysql', 'db')
-    
-    db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL',host=dbhost, user=dbuser, passwd=dbpass, db=dbname)
+    db = None
     currentEvent = None
     
     def __init__(self, parent=None):
+        with open("config.ini") as f:
+          b33rn4ry_config = f.read()
+          config = ConfigParser.RawConfigParser(allow_no_value=True)
+          config.readfp(io.BytesIO(b33rn4ry_config))
+
+          dbhost = config.get('mysql', 'host')
+          dbuser = config.get('mysql', 'user')
+          dbpass = config.get('mysql', 'passwd')
+          dbname = config.get('mysql', 'db')
+          # Serial bitrate for RFID reader
+          SERIAL_DEVICE = config.get('registry', 'comdevice')
+
+        self.db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL', host=dbhost, user=dbuser, passwd=dbpass, db=dbname)
         QtGui.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
