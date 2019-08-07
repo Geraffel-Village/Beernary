@@ -1,5 +1,5 @@
 #!/usr/bin/python
- 
+
 import RPi.GPIO as GPIO
 import serial
 import time
@@ -15,8 +15,8 @@ LCD_D5 = 17
 LCD_D6 = 27
 LCD_D7 = 22
 LCD_LIGHT =  4
-VALVE = 7
-FLOWSENSOR = 8
+VALVE = 6         #vormals 7
+FLOWSENSOR = 5    #vormals 8
  
 # Define some device constants
 LCD_WIDTH = 20    # Maximum characters per line
