@@ -107,7 +107,7 @@ class SerialRfid:
   def _read_tagdata_(self):
     cksum_calc = 0x00
     result = ""
-    tagdata = []
+    tagdata = None
       # read next 10 bytes (remaining 9 of TAG + 1 byte cksum)
     data = self.ser.read(10)
     cksum_read_ascii = self.ser.read(1)
@@ -116,20 +116,15 @@ class SerialRfid:
     print "debug: data:" + data + "; cksum:" + cksum_read_ascii
 #        print "debug: " + hex(int(data, 16))
 #        print str(binascii.a2b_hex(data))
-    for x in range(0,5):
-      # copy 2 bytes of ascii-string (10 chars; 5 bytes)
-      byte = data[x*2:x*2+2]
-      print byte
-      # store read data in tagdata[0..4] as interger
-      tagdata.append(int(byte, 16))
-#      print binascii.a2b_hex(hnibble+lnibble)
-#         print hnibble 
+    tagdata = data[1:9]
+    tagdata = int(tagdata, 16)
+    print "debug: tagid:%i" % tagdata
 
     cksum_read = int(cksum_read_ascii, 16)
 #    cksum_read = cksum_read_ascii
 
-    for x in tagdata:
-      cksum_calc = cksum_calc ^ x
+    for x in data[1:9]:
+      cksum_calc = cksum_calc ^ int(x, 16)
       print "cksum: %x" % cksum_calc
     if cksum_calc != cksum_read:
       print "cksum do not match"
