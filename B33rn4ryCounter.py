@@ -38,11 +38,6 @@ E_DELAY = 0.0005
 RFID_START = "\x04"
 RFID_END = "\x02"
 
-# Serial bitrate for RFID reader
-SERIAL_DEVICE = "/dev/ttyAMA0"
-
-reader = B33rn4ryReader.SerialRfid(SERIAL_DEVICE)
-
 
 class beerKeg:
   __pulses__ = 0
@@ -101,6 +96,9 @@ def main():
     dbpass = config.get('mysql', 'passwd')
     dbname = config.get('mysql', 'db')
 
+    # Serial bitrate for RFID reader
+    SERIAL_DEVICE = config.get('counter', 'comdevice')
+
   db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL',host=dbhost, user=dbuser, passwd=dbpass, db=dbname)
   try:
     currentEvent = db.getActiveEvent()
@@ -109,6 +107,7 @@ def main():
     time.sleep(2)
     
 
+  reader = B33rn4ryReader.SerialRfid(SERIAL_DEVICE)
   reader.initialize()
 #  lcd_backlight(True)
 #  time.sleep(0.5)
