@@ -1,3 +1,6 @@
+import ConfigParser
+import io
+
 import B33rn4ryExceptions
 
 class B33rn4ryDatabase():
@@ -78,8 +81,18 @@ class MysqlDatabase():
   def __init__(self):
     import MySQLdb
 
+    with open("config.ini") as f:
+      b33rn4ry_config = f.read()
+    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.readfp(io.BytesIO(b33rn4ry_config))
+
+    dbhost = config.get('mysql', 'host')
+    dbuser = config.get('mysql', 'user')
+    dbpass = config.get('mysql', 'passwd')
+    db= config.get('mysql', 'db')
+
     # Connect to mySQL db
-    self.db = MySQLdb.connect(host="localhost", user="b33rn4ry", passwd="b33rn4ry", db="b33rn4rycounter")
+    self.db = MySQLdb.connect(host=dbhost, user=dbuser, passwd=dbpass, db=db)
     self.cursor=self.db.cursor()
     
   def checkUser(self, userID):
