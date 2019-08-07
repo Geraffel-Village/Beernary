@@ -5,7 +5,8 @@ import RPi.GPIO as GPIO
 import serial
 import time
 import datetime
-import os, syslog
+import os, syslog, io
+import ConfigParser
 import B33rn4ryDatabase, B33rn4ryExceptions, B33rn4ryReader
 
 # Define GPIO mapping
@@ -90,7 +91,17 @@ def main():
   # Initialise display
   lcd_init()
 
-  db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL')
+  with open("config.ini") as f:
+    b33rn4ry_config = f.read()
+    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.readfp(io.BytesIO(b33rn4ry_config))
+
+    dbhost = config.get('mysql', 'host')
+    dbuser = config.get('mysql', 'user')
+    dbpass = config.get('mysql', 'passwd')
+    dbname = config.get('mysql', 'db')
+
+  db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL',host=dbhost, user=dbuser, passwd=dbpass, db=dbname)
   try:
     currentEvent = db.getActiveEvent()
   except B33rn4ryExceptions.B33rn4rySetupEventError as error:
