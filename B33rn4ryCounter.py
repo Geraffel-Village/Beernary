@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 import RPi.GPIO as GPIO
 import serial
 import time
@@ -51,7 +52,7 @@ class beerKeg:
   def setPulses(self, pulses):
     self.__pulses__ = pulses
 
-  # just to habdle the "channel"-argument given by callback-function
+  # just to handle the "channel"-argument given by callback-function
   def newPulse(self, *args):
     if len(args) == 0:
       self.__pulses__ += 1
@@ -116,7 +117,7 @@ def main():
   lcd_string("B33rn4ry Counter",LCD_LINE_1,1)
   lcd_string("                    ",LCD_LINE_2,1)
   lcd_string("     Welcome to     ",LCD_LINE_3,1)
-  lcd_string(currentEvent[1].zfill(16),LCD_LINE_4,1)
+  lcd_string(currentEvent[1].zfill(0),LCD_LINE_4,1)
 
   time.sleep(2)
   
@@ -159,15 +160,15 @@ def main():
 #        pID = str(int(ID[2:], 16))
         pID = ID
         lcd_backlight(True)
-#        lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
-#        lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
+#         lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
+#         lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
 #        syslog.syslog(syslog.LOG_DEBUG, "read ID:"+ pID)
         result = db.checkUser(ID)
         if result is not None:
           if (IdPulsesStart is None):
             IdPulsesStart = currentKeg.getPulses()
           lcd_string("User: "+str(result[0]),LCD_LINE_3,1)
-          #lcd_string("ACCESS GRANTED!",LCD_LINE_3,1)
+          lcd_string("ACCESS GRANTED!",LCD_LINE_3,1)#
           lcd_string("Go ahead and draw a beer!",LCD_LINE_4,1)
           syslog.syslog("ACCESS GRANTED!")
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
