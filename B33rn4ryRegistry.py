@@ -6,6 +6,8 @@ from PyQt4.QtGui import QMessageBox, QDialog
 from PyQt4.QtSql import *
 import B33rn4ryDatabase
 import serial
+import os, io
+import ConfigParser
 
 # RFID start and end flags
 RFID_START = "\x04"
@@ -21,7 +23,17 @@ Ui_serviceDialog, QtBaseClass = uic.loadUiType("service.ui")
 
 class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     
-    db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL')
+    with open("config.ini") as f:
+        b33rn4ry_config = f.read()
+        config = ConfigParser.RawConfigParser(allow_no_value=True)
+        config.readfp(io.BytesIO(b33rn4ry_config))
+    
+        dbhost = config.get('mysql', 'host')
+        dbuser = config.get('mysql', 'user')
+        dbpass = config.get('mysql', 'passwd')
+        dbname = config.get('mysql', 'db')
+    
+    db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL',host=dbhost, user=dbuser, passwd=dbpass, db=dbname)
     currentEvent = None
     
     def __init__(self, parent=None):
