@@ -124,13 +124,14 @@ class SerialRfid:
     cksum_read = int(cksum_read_ascii, 16)
 #    cksum_read = cksum_read_ascii
 
-    for x in data[1:9]:
-      cksum_calc = cksum_calc ^ int(x, 16)
-      print "cksum: %x" % cksum_calc
-    if cksum_calc != cksum_read:
-      print "cksum do not match"
-    else:
-      result = tagdata
+#    for x in data[1:9]:
+#      cksum_calc = cksum_calc ^ int(x, 16)
+#      print "cksum: %x" % cksum_calc
+#    if cksum_calc != cksum_read:
+#      print "cksum do not match"
+#    else:
+#      result = tagdata
+    result = tagdata
     return result
 
   def close(self):
