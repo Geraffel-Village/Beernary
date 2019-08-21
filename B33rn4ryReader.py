@@ -109,14 +109,15 @@ class SerialRfid:
     result = ""
     tagdata = None
       # read next 10 bytes (remaining 9 of TAG + 1 byte cksum)
-    data = self.ser.read(10)
-    cksum_read_ascii = self.ser.read(1)
+    data = self.ser.read(9)
+    cksum_read_ascii = self.ser.read(2)
 #    data="62e3086ced"
 #    cksum_read_ascii = 0x08
     print "debug: data:" + data + "; cksum:" + cksum_read_ascii
 #        print "debug: " + hex(int(data, 16))
 #        print str(binascii.a2b_hex(data))
-    tagdata = data[1:9]
+    tagdata = data[1:]
+    print "tag input: " + tagdata
     tagdata = int(tagdata, 16)
     print "debug: tagid:%i" % tagdata
 
