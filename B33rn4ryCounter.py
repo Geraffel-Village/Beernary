@@ -125,6 +125,7 @@ def main():
 
   syslog.syslog("B33rn4ry Counter starting")
  
+  lcd_backlight(True)
   lcd_string("B33rn4ry Counter",LCD_LINE_1,1)
   lcd_string("                    ",LCD_LINE_2,1)
   lcd_string("     Welcome to     ",LCD_LINE_3,1)
@@ -135,6 +136,8 @@ def main():
   lcd_string("Idle",LCD_LINE_2,1)
   lcd_string("                    ",LCD_LINE_3,1)
   lcd_string("Waiting for Geeks",LCD_LINE_4,1)
+  time.sleep(2)
+  lcd_backlight(False)
 
   try:
     kegID = db.getCurrentKeg(currentEvent[0])
