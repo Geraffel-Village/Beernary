@@ -29,7 +29,7 @@ class UsbRfid:
       data = self.ser.read(1)
     data = self.ser.read(10)
     if data != '':
-      return data
+      return data[2:]
 
   def close(self):
     self.ser.close()

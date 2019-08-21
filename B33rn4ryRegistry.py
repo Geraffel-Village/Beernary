@@ -4,8 +4,7 @@ import sys, io, os
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QDialog
 from PyQt4.QtSql import *
-import B33rn4ryDatabase
-import serial
+import B33rn4ryDatabase, B33rn4ryReader
 import ConfigParser
 
 # RFID start and end flags
@@ -176,19 +175,11 @@ class serviceDialog(QtGui.QDialog, Ui_serviceDialog):
         window.statusBar().showMessage(window.db.getEventName(window.currentEvent) + ' event gewaehlt')
 
 def read_rfid(serialdevice):
-    try:
-        ser = serial.Serial(serialdevice, BAUDRATE, timeout=1)
-    except serial.serialutil.SerialException:
-        print "Could not open serial device " +serialdevice
-    data = ser.read(1)
-    while data != RFID_START and data != '':
-        data = ser.read(1)
-    data = ser.read(10)
-    ser.close()
-    if data != '':
-        return data
-    else:
-        return 0
+    reader = B33rn4ryReader.UsbRfid(serialdevice)
+    reader.initialize()
+    data = reader.read_rfid()
+    reader.close()
+    return data
 
 if __name__ == "__main__":
     with open("config.ini") as f:
