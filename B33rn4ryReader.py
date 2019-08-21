@@ -129,8 +129,8 @@ class SerialRfid:
     if cksum_calc != cksum_read:
       print "cksum do not match"
     else:
-      result = data
-    print "data:" + binascii.hexlify(data)
+      result = tagdata
+    #print "data:" + binascii.hexlify(tagdata)
     return result
 
   def close(self):
