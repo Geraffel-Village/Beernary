@@ -186,7 +186,7 @@ def read_rfid(serialdevice):
     data = ser.read(10)
     ser.close()
     if data != '':
-        return data
+        return data[2:]
     else:
         return 0
 
