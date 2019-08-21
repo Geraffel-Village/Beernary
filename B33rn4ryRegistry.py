@@ -80,12 +80,7 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         index = self.userTable.selectedIndexes()
         if index:
             userId = self.userTable.model().data(index[0]).toString()
-            try:
-                sql = "DELETE FROM `users` WHERE `id` = '%s';" % userId
-                cursor.execute(sql)
-                db.commit()
-            except:
-                print("Error executing SQL statement!")
+            self.db.deleteUser(userId)
             self.userTable.hideColumn(0)
             self.refreshUserTable()
 

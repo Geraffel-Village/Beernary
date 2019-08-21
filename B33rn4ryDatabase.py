@@ -37,6 +37,9 @@ class B33rn4ryDatabase():
   def addUser(self, ID, newUsername):
     return self.Database.addUser(ID, newUsername)
 
+  def deleteUser(self, ID):
+    return self.Database.deleteUser(ID)
+
   def newKeg(self, event, volume):
     self.Database.newKeg(event, volume)
   
@@ -116,6 +119,13 @@ class MysqlDatabase():
       raise NotImplementedError("adding dublicate Username not implemented")
     self.cursor.execute("INSERT IGNORE INTO `users` SET `id`='%s', `name` = '%s';" % (ID, newUsername))
     self.db.commit()
+
+  def deleteUser(self, ID):
+    try:
+      self.cursor.execute("DELETE from `users` where `id` = '%s';" % ID)
+      self.db.commit()
+    except MySQLdb.Error, e:
+      print("Error: ", e)
 
   def newKeg(self, event, volume):
     # mark current Keg as empty
