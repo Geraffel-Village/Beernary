@@ -4,7 +4,7 @@ import sys, io, os
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtGui import QMessageBox, QDialog
 from PyQt4.QtSql import *
-import B33rn4ryDatabase, B33rn4ryReader
+import B33rn4ryDatabase, B33rn4ryReader, B33rn4ryExceptions
 import ConfigParser
 
 # RFID start and end flags

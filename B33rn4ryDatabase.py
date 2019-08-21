@@ -125,7 +125,7 @@ class MysqlDatabase():
       self.cursor.execute("DELETE from `users` where `id` = '%s';" % ID)
       self.db.commit()
     except MySQLdb.Error, e:
-      print("Error: ", e)
+      raise DatabaseException("DatabaseError: ", e)
 
   def newKeg(self, event, volume):
     # mark current Keg as empty
