@@ -176,7 +176,7 @@ def main():
 #         lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
 #         lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
 #        syslog.syslog(syslog.LOG_DEBUG, "read ID:"+ pID)
-        result = db.checkUser(ID)
+        result = db.checkUser('{:08X}'.format(ID))
         if result is not None:
           if (IdPulsesStart is None):
             IdPulsesStart = currentKeg.getPulses()
