@@ -206,6 +206,7 @@ if __name__ == "__main__":
     window = MainWindow()
     window.show()
     window.connectDB(dbhost, dbuser, dbpass, dbname)
+    window.refreshUserTable()
     newUserWindow = newUserDialog(serialdevice)
     serviceWindow = serviceDialog()
     sys.exit(app.exec_())
