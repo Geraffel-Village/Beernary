@@ -24,19 +24,6 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     currentEvent = None
     
     def __init__(self, parent=None):
-        with open("config.ini") as f:
-          b33rn4ry_config = f.read()
-          config = ConfigParser.RawConfigParser(allow_no_value=True)
-          config.readfp(io.BytesIO(b33rn4ry_config))
-
-          dbhost = config.get('mysql', 'host')
-          dbuser = config.get('mysql', 'user')
-          dbpass = config.get('mysql', 'passwd')
-          dbname = config.get('mysql', 'db')
-          # Serial bitrate for RFID reader
-          SERIAL_DEVICE = config.get('registry', 'comdevice')
-
-        self.db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL', host=dbhost, user=dbuser, passwd=dbpass, db=dbname)
         QtGui.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
         self.setupUi(self)
@@ -56,6 +43,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         if (self.db):
             self.refreshUserTable()
         self.refreshButton.clicked.connect(self.refreshUserTable)
+
+    def connectDB(self, dbhost, dbuser, dbpass, dbname):
+        self.db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL', host=dbhost, user=dbuser, passwd=dbpass, db=dbname)
 
     def exitButtonClicked(self):
         msgBox = QMessageBox(self)
@@ -112,7 +102,9 @@ class MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 class newUserDialog(QtGui.QDialog, Ui_newUserDialog):
     
-    def __init__(self, parent=MainWindow):
+    ReaderDevice = None
+
+    def __init__(self, ReaderDevice, parent=MainWindow):
         QtGui.QDialog.__init__(self)
         Ui_newUserDialog.__init__(self)
         self.setupUi(self)
@@ -120,6 +112,7 @@ class newUserDialog(QtGui.QDialog, Ui_newUserDialog):
         self.readRfidButton.clicked.connect(self.readRFID)
         self.buttonBox.accepted.connect(self.addUser)
         self.buttonBox.rejected.connect(self.clearFields)
+        self.ReaderDevice = ReaderDevice
 
     def addUser(self):
         palette = QtGui.QPalette()
@@ -140,7 +133,7 @@ class newUserDialog(QtGui.QDialog, Ui_newUserDialog):
     def readRFID(self):
         global ID
         ID = ''
-        ID = read_rfid()
+        ID = read_rfid(self.ReaderDevice)
         if ID:
             pID = str(int(ID[2:], 16))
             self.lineRFIDno.setText("%s" % pID.zfill(10))
@@ -182,11 +175,11 @@ class serviceDialog(QtGui.QDialog, Ui_serviceDialog):
         window.db.setEventActive(window.currentEvent)
         window.statusBar().showMessage(window.db.getEventName(window.currentEvent) + ' event gewaehlt')
 
-def read_rfid():
+def read_rfid(serialdevice):
     try:
-        ser = serial.Serial(SERIAL_DEVICE, BAUDRATE, timeout=1)
+        ser = serial.Serial(serialdevice, BAUDRATE, timeout=1)
     except serial.serialutil.SerialException:
-        print "Could not open serial device " +SERIAL_DEVICE
+        print "Could not open serial device " +serialdevice
     data = ser.read(1)
     while data != RFID_START and data != '':
         data = ser.read(1)
@@ -198,9 +191,21 @@ def read_rfid():
         return 0
 
 if __name__ == "__main__":
+    with open("config.ini") as f:
+        b33rn4ry_config = f.read()
+        config = ConfigParser.RawConfigParser(allow_no_value=True)
+        config.readfp(io.BytesIO(b33rn4ry_config))
+    
+        dbhost = config.get('mysql', 'host')
+        dbuser = config.get('mysql', 'user')
+        dbpass = config.get('mysql', 'passwd')
+        dbname = config.get('mysql', 'db')
+        # Serial bitrate for RFID reader
+        serialdevice = config.get('registry', 'comdevice')
     app = QtGui.QApplication(sys.argv)
     window = MainWindow()
     window.show()
-    newUserWindow = newUserDialog()
+    window.connectDB(dbhost, dbuser, dbpass, dbname)
+    newUserWindow = newUserDialog(serialdevice)
     serviceWindow = serviceDialog()
     sys.exit(app.exec_())
