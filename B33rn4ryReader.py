@@ -36,8 +36,8 @@ class UsbRfid:
 
 class SerialRfid:
   # RFID start and end flags
-  RFID_START = "\x02"
-  RFID_END = "\x03"
+  RFID_START = 2
+  RFID_END = 3
 
   SERIAL_DEVICE = ''
   BAUDRATE = 9600
@@ -110,10 +110,11 @@ class SerialRfid:
     tagdata = []
       # read next 10 bytes (remaining 9 of TAG + 1 byte cksum)
     data = self.ser.read(10)
+
     cksum_read_ascii = self.ser.read(1)
 #    data="62e3086ced"
 #    cksum_read_ascii = 0x08
-    print("debug: data:" + data + "; cksum:" + cksum_read_ascii)
+    #print("debug: data:" + data + "; cksum:" + cksum_read_ascii)
 #        print "debug: " + hex(int(data, 16))
 #        print str(binascii.a2b_hex(data))
     for x in range(0,5):
@@ -131,12 +132,12 @@ class SerialRfid:
     for x in tagdata:
       cksum_calc = cksum_calc ^ x
       print("cksum: %x" % cksum_calc)
-    if cksum_calc != cksum_read:
-      print("cksum do not match")
-    else:
-      result = data
-    print("data:" + binascii.hexlify(data))
-    return result
+    #if cksum_calc != cksum_read:
+      #print("cksum do not match")
+    #else:
+    result = data[1:9].decode('ASCII')
+    print("Tag data:"+result)
+    return str(result)
 
   def close(self):
     self.ser.close()
