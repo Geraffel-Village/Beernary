@@ -15,7 +15,7 @@ LCD_D5 = 17
 LCD_D6 = 27
 LCD_D7 = 22
 LCD_LIGHT =  4
-VALVE = 7
+VALVE = 6
 FLOWSENSOR = 8
  
 # Define some device constants
@@ -31,6 +31,7 @@ LCD_LINE_4 = 0xD4 # LCD RAM address for the 4th line
 # Timing constants
 E_PULSE = 0.0005
 E_DELAY = 0.0005
+DRAFTING_DURATION = 30 #seconds
 
 # RFID start and end flags
 RFID_START = "\x04"
@@ -85,6 +86,8 @@ def main():
   GPIO.setup(LCD_D7, GPIO.OUT) # DB7
   GPIO.setup(LCD_LIGHT, GPIO.OUT) # Backlight enable
   GPIO.setup(VALVE, GPIO.OUT)
+
+  valve(False) #Cause valve was open in the beginning
  
   # Initialise display
   lcd_init()
@@ -135,6 +138,7 @@ def main():
 
   syslog.syslog("B33rn4ry Counter ready")
 
+  draftingEndTime = None
   while True:
     
     # clear variables
@@ -172,6 +176,9 @@ def main():
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')
           valve(True)
           IDtmp = ID
+          if draftingEndTime is None:
+            draftingEndTime = datetime.datetime.now() + datetime.timedelta(seconds=DRAFTING_DURATION)
+            print("draftingEndTime set to {}".format(draftingEndTime))
           print("drafting: Event: %d; keg: %d" % (currentEvent[0], kegID))
         else:
           if (IdPulsesStart is not None):
@@ -182,12 +189,12 @@ def main():
           lcd_string("                    ",LCD_LINE_4,1)
           syslog.syslog("ACCESS DENIED!")
           #os.system('mpg321 sadtrombone.mp3')
-
-    else:
+    elif (draftingEndTime != None and datetime.datetime.now() > draftingEndTime) or (ID != "" and ID != IDtmp):
       valve(False)
       if (IdPulsesStart is not None):
         db.storeDraft(IDtmp, currentKeg.getPulses() - IdPulsesStart)
         db.setKegPulses(kegID, currentKeg.getPulses())
+      print("Closing valve")
       IdPulsesStart = None
       lcd_backlight(False)
       lcd_string("B33rn4ry Counter",LCD_LINE_1,1)
@@ -195,6 +202,7 @@ def main():
       lcd_string("                    ",LCD_LINE_3,1)
       lcd_string("Waiting for Geeks",LCD_LINE_4,1)
       IDtmp = ""
+      draftingEndTime = None
 
 def lcd_init():
   # Initialise display
