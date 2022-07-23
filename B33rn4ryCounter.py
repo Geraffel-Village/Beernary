@@ -37,7 +37,7 @@ RFID_START = "\x04"
 RFID_END = "\x02"
 
 # Serial bitrate for RFID reader
-SERIAL_DEVICE = "/dev/ttyAMA0"
+SERIAL_DEVICE = "/dev/ttyS0"
 
 reader = B33rn4ryReader.SerialRfid(SERIAL_DEVICE)
 
@@ -152,7 +152,6 @@ def main():
       time.sleep(2)
 
     ID = reader.read_rfid()
-
     print(("ID read:", ID))
     if ID:
       if ID != IDtmp:
