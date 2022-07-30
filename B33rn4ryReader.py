@@ -4,6 +4,9 @@ import B33rn4ryExceptions
 import binascii
 
 class UsbRfid:
+  """
+  This class provides a common interface to use the "USB-RFID" reader.
+  """
   # RFID start and end flags
   RFID_START = "\x04"
   RFID_END = "\x02"
@@ -23,6 +26,11 @@ class UsbRfid:
     syslog.syslog("USB-RFID reader initialized")
 
   def read_rfid(self):
+    """
+    As the reader has some internal controller, we can just query it for the 
+    rfid if has read. We take care of the controll-characters and only return
+    the pure rfid-string. This function can be called regularly.
+    """
     print ("read rfid")
     data = self.ser.read(1)
     while data != self.RFID_START and data != '':
@@ -35,6 +43,9 @@ class UsbRfid:
     self.ser.close()
 
 class SerialRfid:
+  """
+  This class provides a common interface to use the dumb "serial-RFID" reader.
+  """
   # RFID start and end flags
   RFID_START = "\x02"
   RFID_END = "\x03"
@@ -62,6 +73,11 @@ class SerialRfid:
     syslog.syslog("Serial-RFID reader initialized")
 
   def read_rfid(self):
+    """
+    This Method is built around the internal _read_tagdata_() method. It's doing
+    some checks on the raw-data and giving a result that's the same as used on 
+    other rfid-readers implemented.
+    """
     result = ''
 
     if self.ser is None:
@@ -105,6 +121,9 @@ class SerialRfid:
     return result
 
   def _read_tagdata_(self):
+    """
+    This internal method is doing the low-level communication with the reader.
+    """
     cksum_calc = 0x00
     result = ""
     tagdata = None
