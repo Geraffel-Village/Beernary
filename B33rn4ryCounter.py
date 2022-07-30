@@ -1,10 +1,12 @@
 #!/usr/bin/python
- 
+
+
 import RPi.GPIO as GPIO
 import serial
 import time
 import datetime
-import os, syslog
+import os, syslog, io
+import ConfigParser
 import B33rn4ryDatabase, B33rn4ryExceptions, B33rn4ryReader
 
 # Define GPIO mapping
@@ -15,8 +17,8 @@ LCD_D5 = 17
 LCD_D6 = 27
 LCD_D7 = 22
 LCD_LIGHT =  4
-VALVE = 7
-FLOWSENSOR = 8
+VALVE = 6         #vormals 7
+FLOWSENSOR = 5    #vormals 8
  
 # Define some device constants
 LCD_WIDTH = 20    # Maximum characters per line
@@ -36,11 +38,6 @@ E_DELAY = 0.0005
 RFID_START = "\x04"
 RFID_END = "\x02"
 
-# Serial bitrate for RFID reader
-SERIAL_DEVICE = "/dev/ttyAMA0"
-
-reader = B33rn4ryReader.SerialRfid(SERIAL_DEVICE)
-
 
 class beerKeg:
   __pulses__ = 0
@@ -51,7 +48,7 @@ class beerKeg:
   def setPulses(self, pulses):
     self.__pulses__ = pulses
 
-  # just to habdle the "channel"-argument given by callback-function
+  # just to handle the "channel"-argument given by callback-function
   def newPulse(self, *args):
     if len(args) == 0:
       self.__pulses__ += 1
@@ -89,7 +86,20 @@ def main():
   # Initialise display
   lcd_init()
 
-  db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL')
+  with open("config.ini") as f:
+    b33rn4ry_config = f.read()
+    config = ConfigParser.RawConfigParser(allow_no_value=True)
+    config.readfp(io.BytesIO(b33rn4ry_config))
+
+    dbhost = config.get('mysql', 'host')
+    dbuser = config.get('mysql', 'user')
+    dbpass = config.get('mysql', 'passwd')
+    dbname = config.get('mysql', 'db')
+
+    # Serial bitrate for RFID reader
+    SERIAL_DEVICE = config.get('counter', 'comdevice')
+
+  db = B33rn4ryDatabase.B33rn4ryDatabase(dbtype='MYSQL',host=dbhost, user=dbuser, passwd=dbpass, db=dbname)
   try:
     currentEvent = db.getActiveEvent()
   except B33rn4ryExceptions.B33rn4rySetupEventError as error:
@@ -97,6 +107,7 @@ def main():
     time.sleep(2)
     
 
+  reader = B33rn4ryReader.SerialRfid(SERIAL_DEVICE)
   reader.initialize()
 #  lcd_backlight(True)
 #  time.sleep(0.5)
@@ -113,16 +124,19 @@ def main():
 
   syslog.syslog("B33rn4ry Counter starting")
  
+  lcd_backlight(True)
   lcd_string("B33rn4ry Counter",LCD_LINE_1,1)
   lcd_string("                    ",LCD_LINE_2,1)
   lcd_string("     Welcome to     ",LCD_LINE_3,1)
-  lcd_string(currentEvent[1].zfill(16),LCD_LINE_4,1)
+  lcd_string(currentEvent[1].zfill(0),LCD_LINE_4,1)
 
   time.sleep(2)
   
   lcd_string("Idle",LCD_LINE_2,1)
   lcd_string("                    ",LCD_LINE_3,1)
   lcd_string("Waiting for Geeks",LCD_LINE_4,1)
+  time.sleep(2)
+  lcd_backlight(False)
 
   try:
     kegID = db.getCurrentKeg(currentEvent[0])
@@ -159,15 +173,15 @@ def main():
 #        pID = str(int(ID[2:], 16))
         pID = ID
         lcd_backlight(True)
-#        lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
-#        lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
+#         lcd_string("Reading RFID tag ...",LCD_LINE_1,1)
+#         lcd_string("ID:   "+ pID.zfill(10),LCD_LINE_2,1)
 #        syslog.syslog(syslog.LOG_DEBUG, "read ID:"+ pID)
-        result = db.checkUser(ID)
+        result = db.checkUser('{:08X}'.format(ID))
         if result is not None:
           if (IdPulsesStart is None):
             IdPulsesStart = currentKeg.getPulses()
           lcd_string("User: "+str(result[0]),LCD_LINE_3,1)
-          #lcd_string("ACCESS GRANTED!",LCD_LINE_3,1)
+          lcd_string("ACCESS GRANTED!",LCD_LINE_3,1)#
           lcd_string("Go ahead and draw a beer!",LCD_LINE_4,1)
           syslog.syslog("ACCESS GRANTED!")
           #os.system('mpg321 access_granted.mp3 2>&1 > /dev/null &')

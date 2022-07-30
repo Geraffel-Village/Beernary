@@ -12,13 +12,13 @@ class B33rn4ryDatabase():
   Database = None
 
 
-  def __init__(self, dbtype='MYSQL'):
+  def __init__(self, dbtype='MYSQL', **kwargs):
     """
     Initializes the basic database-connection, by default the "MYSQL"-type is used.
     The reference to the current database is kept in the private variable "Database".
     """
     if dbtype == 'MYSQL':
-      self.Database = MysqlDatabase()
+      self.Database = MysqlDatabase(**kwargs)
     elif dbtype == 'CONSOLE':
       self.Database = ConsoleDatabase()
     else:
@@ -63,6 +63,9 @@ class B33rn4ryDatabase():
     in the database.
     """
     return self.Database.addUser(ID, newUsername)
+
+  def deleteUser(self, ID):
+    return self.Database.deleteUser(ID)
 
   def newKeg(self, event, volume):
     """
@@ -119,11 +122,11 @@ class MysqlDatabase():
   db = None
   cursor = None
   
-  def __init__(self):
+  def __init__(self, **kwargs):
     import MySQLdb
 
     # Connect to mySQL db
-    self.db = MySQLdb.connect(host="localhost", user="b33rn4ry", passwd="b33rn4ry", db="b33rn4rycounter")
+    self.db = MySQLdb.connect(**kwargs)
     self.cursor=self.db.cursor()
     
   def checkUser(self, userID):
@@ -161,10 +164,19 @@ class MysqlDatabase():
     self.cursor.execute("INSERT IGNORE INTO `users` SET `id`='%s', `name` = '%s';" % (ID, newUsername))
     self.db.commit()
 
+  def deleteUser(self, ID):
+    try:
+      self.cursor.execute("DELETE from `users` where `id` = '%s';" % ID)
+      self.db.commit()
+    except MySQLdb.Error, e:
+      raise DatabaseException("DatabaseError: ", e)
+
   def newKeg(self, event, volume):
     # mark current Keg as empty
     self.cursor.execute("UPDATE `keg` SET `isempty`=True WHERE eventid=%d AND isEmpty=False;" % (event))
-    if self.cursor.rowcount <> 1:
+    if self.cursor.rowcount == 0:
+      print "first keg for event added"
+    elif self.cursor.rowcount <> 1:
       self.db.rollback()
       raise RuntimeError("wrong # of kegs for this event")
     self.cursor.execute ("Insert INTO `keg` (eventid, volume) VALUES (%d, %d)" % (event, volume) )
