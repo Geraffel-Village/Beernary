@@ -16,7 +16,7 @@ LCD_D6 = 27
 LCD_D7 = 22
 LCD_LIGHT =  4
 VALVE = 6
-FLOWSENSOR = 8
+FLOWSENSOR = 5
  
 # Define some device constants
 LCD_WIDTH = 20    # Maximum characters per line
