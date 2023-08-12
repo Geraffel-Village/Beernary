@@ -1,0 +1,68 @@
+# code: language=ansible
+---
+
+# This will copy the registry too, but it will be left unused.
+- name: "Copy Beernary application source to Raspberry"
+  ansible.posix.synchronize:
+    src: "{{ beernary_counter_source_path }}"
+    dest: "{{ beernary_counter_destination_path }}"
+    delete: true
+  notify:
+    - "Restart beernary-counter"
+  tags: update_app
+
+- name: "Ensure Beernary application user exists"
+  ansible.builtin.user:
+    name: "{{ beernary_counter_application_user }}"
+    home: "/home/{{ beernary_counter_application_user }}"
+    shell: "/bin/bash"
+    state: "present"
+
+- name: "Ensure Beernary application group exists"
+  ansible.builtin.group:
+    name: "{{ beernary_counter_application_user }}"
+    state: "present"
+
+- name: "Deploy systemd unit for beernary-counter"
+  ansible.builtin.template:
+    src: "beernary-counter.service.j2"
+    dest: "/etc/systemd/system/beernary-counter.service"
+    owner: "{{ beernary_counter_application_user }}"
+    group: "{{ beernary_counter_application_user }}"
+    mode: "0744"
+  notify:
+    - "Reload systemd"
+    - "Enable beernary-counter"
+    - "Restart beernary-counter"
+
+- name: "Create configuration directory for beernary-counter"
+  ansible.builtin.file:
+    path: "{{ beernary_counter_configuration_path }}"
+    state: "directory"
+    owner: "{{ beernary_counter_application_user }}"
+    group: "{{ beernary_counter_application_user }}"
+    mode: "0744"
+
+- name: "Deploy configuration file for beernary-counter"
+  ansible.builtin.template:
+    src: "config.ini.j2"
+    dest: "{{ beernary_counter_configuration_path }}/config.ini"
+    owner: "{{ beernary_counter_application_user }}"
+    group: "{{ beernary_counter_application_user }}"
+    mode: "0644"
+  notify:
+    - "Restart beernary-counter"
+
+# Final health check for beernary after deployment
+
+- name: "Trigger handlers before executing final check"
+  ansible.builtin.meta: flush_handlers
+
+- name: "Retrieve service state information from ansible"
+  ansible.builtin.service_facts:
+
+- name: "Let ansible fail if beernary is not running"
+  ansible.builtin.fail:
+    msg: "beernary-counter application not running!"
+  when: ansible_facts.services['beernary-counter.service']['state'] != 'running'
+  ignore_errors: true # TODO // remove after refactoring is done

@@ -1,0 +1,22 @@
+# code: language=ansible
+---
+- name: "Deploy os-configuration to all hosts"
+  hosts: "all"
+  gather_facts: false
+  roles:
+    - "os-configuration"
+  tags: "os-configuration"
+
+- name: "Deploy beernary-database to selected host"
+  hosts: "beernary-counter"
+  gather_facts: false
+  roles:
+    - "beernary-database"
+  tags: "beernary-database"
+
+- name: "Deploy beernary-counter to selected host"
+  hosts: "beernary-counter"
+  gather_facts: false
+  roles:
+    - "beernary-counter"
+  tags: "beernary-counter"

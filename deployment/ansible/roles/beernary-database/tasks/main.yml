@@ -1,0 +1,103 @@
+# code: language=ansible
+---
+
+- name: "Install pip for Ansible dependencies" # noqa package-latest
+  ansible.builtin.apt:
+    name:
+      - "python3-pip"
+    state: "latest"
+
+- name: "Install pip dependencies for Ansible" # noqa package-latest
+  ansible.builtin.pip:
+    name: "mysqlclient"
+    state: "latest"
+
+- name: "Install MariaDB server and client" # noqa package-latest
+  ansible.builtin.apt:
+    name:
+      - "mariadb-server-10.5"
+      - "mariadb-client-10.5"
+    state: "latest"
+
+# Hardening
+
+- name: "Ensure that password is set for root user"
+  community.mysql.mysql_user:
+    name: "root"
+    host_all: true
+    password: "{{ beernary_database_root_password }}"
+    state: present
+
+- name: "Deploy my.cnf with root password for client"
+  ansible.builtin.template:
+    src: "my.cnf.j2"
+    dest: "/root/.my.cnf"
+    mode: "0400"
+
+- name: "Ensure that the test database is absent"
+  community.mysql.mysql_db:
+    name: "test"
+    state: "absent"
+
+- name: "Ensure that root can only login from localhost"
+  community.mysql.mysql_query:
+    query: >
+      DELETE
+      FROM mysql.user
+      WHERE USER='root'
+        AND HOST NOT IN ('localhost',
+                         '127.0.0.1',
+                         '::1');
+
+# Provisioning
+
+- name: "Copy Beernary SQL file to database host"
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/tmp/{{ item }}"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  loop: "{{ beernary_database_sql_files }}"
+
+- name: "Delete Beernary database due to database_recreate"
+  community.mysql.mysql_db:
+    name: "{{ beernary_database_name }}"
+    state: "absent"
+  when: beernary_database_recreate|default(False)
+
+- name: "Ensure Beernary database is existing"
+  community.mysql.mysql_db:
+    name: "{{ beernary_database_name }}"
+    state: "present"
+  register: database_status
+
+- name: "Create user for beernary database"
+  community.mysql.mysql_user:
+    name: "{{ beernary_database_user }}"
+    password: "{{ beernary_database_password }}"
+    priv: "{{ beernary_database_name }}.*:ALL"
+    state: "present"
+
+- name: "Import beernary SQL files if database newly created" # noqa no-handler
+  community.mysql.mysql_db:
+    state: "import"
+    name: "{{ beernary_database_name }}"
+    encoding: "latin1"
+    target: "/tmp/{{ item }}"
+  loop: "{{ beernary_database_sql_files }}"
+  when: database_status.changed
+
+- name: "Backup current Beernary database if not empty"
+  when: not database_status.changed
+  block:
+    - name: "Retrieve system time information from Ansible"
+      ansible.builtin.setup:
+      tags: beernary_database_backup
+
+    - name: "Backup current Beernary database to SQL file" # noqa no-handler
+      community.mysql.mysql_db:
+        state: "dump"
+        name: "{{ beernary_database_name }}"
+        target: "{{ beernary_database_dump_path }}/beernary_{{ ansible_date_time.iso8601 }}.sql"
+      tags: beernary_database_backup

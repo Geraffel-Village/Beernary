@@ -1,0 +1,16 @@
+# code: language=ansible
+---
+
+- name: "Reload systemd"
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: "Enable beernary-counter"
+  ansible.builtin.systemd:
+    name: "beernary-counter"
+    enabled: true
+
+- name: "Restart beernary-counter"
+  ansible.builtin.systemd:
+    name: "beernary-counter"
+    state: "restarted"

@@ -1,0 +1,8 @@
+# code: language=yaml
+---
+testing:
+  children:
+    beernary-counter:
+      hosts:
+        beernary-test:
+          ansible_host: beernary-test # via ssh_config

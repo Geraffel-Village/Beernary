@@ -1,0 +1,10 @@
+# code: language=ansible-vars
+---
+beernary_database_name: "beernary"
+beernary_database_user: "beernary"
+beernary_database_password: "changeme"
+beernary_database_sql_files:
+  - "beernary-schema.sql"
+beernary_database_dump_path: "/var/lib"
+
+beernary_database_root_password: "changeme"

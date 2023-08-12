@@ -1,0 +1,27 @@
+# Deployment
+
+## Getting started
+
+There is an Ansible Playbook which will install the B33rn4ry Application to the Raspberry Pi. 
+
+This Playbook is designed to be executed directly from inside this repository structure. It will copy the `application/` folder when deploying instead of pulling from GitHub. This helps with debugging and testing, since you don't have to commit or push your development changes. Also, it can be used fully offline.
+
+## Prerequisites
+
+The Ansible Playbook expects an "empty", fresh installed Raspberry Pi OS (based on Debian 11 and Kernel 6.1) with stable network connectivity. It will not touch any network configurations, except for the SSH server, which will be hardenend, but not changed in terms of listening network interfaces etc.
+
+Also, it is required that you are able to login without specifying a user (use `ssh_config`) and without entering a password by using SSH keys. A simple `ssh [hostname]` should work.
+
+## Deploying
+
+There are some differences between deploying a testing environment (e.g. at Home) and a production environment (e.g. Chaos Communication Camp 2023) which are mostly related to mocking the Keg / Vent system. Use the inventory according to the target environment as described in the next section.
+
+### Deploying for Testing
+
+To ensure Ansible can reach the Raspberry Pi, you only have to change the IP address in `inventory-testing.yml`. This should be the IP address of your local / remote testing Raspberry.
+
+**Important:** `inventory-production.yml` is not supposed to be modified. This is our latest conference/camp/event Deployment (see next Section).
+
+### Deploying for Production
+
+To ensure Ansible can reach the Raspberry Pi, you only have to change the IP address in `inventory-production.yml`.
