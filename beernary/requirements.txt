@@ -1,0 +1,6 @@
+RPi.GPIO
+Mock.GPIO
+pySerial
+ConfigParser
+loguru
+PyMySQL

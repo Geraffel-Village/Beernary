@@ -1,0 +1,15 @@
+[system]
+log_level       = {{ beernary_counter_config_log_level}}
+
+[mysql]
+hostname        = {{ beernary_counter_config_mysql_hostname }}
+username        = {{ beernary_counter_config_mysql_username }}
+password        = {{ beernary_counter_config_mysql_password }}
+database        = {{ beernary_counter_config_mysql_database }}
+
+[serial_devices]
+rfid_reader     = "{{ beernary_counter_config_serial_rfid_reader }}"
+
+[gpio_pins]
+valve           = {{ beernary_counter_config_gpio_valve }}
+flowsensor      = {{ beernary_counter_config_gpio_flowsensor }}

@@ -1,0 +1,1 @@
+../../deployment/ansible/roles/beernary-database/files/beernary-schema.sql

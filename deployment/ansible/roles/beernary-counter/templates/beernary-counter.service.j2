@@ -1,0 +1,16 @@
+[Unit]
+Description=beernary-counter
+
+[Service]
+WorkingDirectory={{ beernary_counter_destination_path }}
+ExecStart=python3 {{ beernary_counter_destination_path }}beernary_counter.py
+KillMode=process
+Restart=on-failure
+RestartSec=60s
+User={{ beernary_counter_application_user }}
+Group={{ beernary_counter_application_group }}
+UMask=007
+SyslogIdentifier=beernary-counter
+
+[Install]
+WantedBy=multi-user.target
