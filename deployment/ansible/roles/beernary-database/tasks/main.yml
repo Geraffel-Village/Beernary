@@ -58,19 +58,23 @@
     mode: "0644"
     owner: "root"
     group: "root"
+  tags: update_database
   loop: "{{ beernary_database_sql_files }}"
 
-- name: "Delete Beernary database due to database_recreate"
+- name: "Delete Beernary database due to beernary_database_recreate"
   community.mysql.mysql_db:
     name: "{{ beernary_database_name }}"
     state: "absent"
-  when: beernary_database_recreate|default(False)
+  tags: update_database
+  when: "'update_database' in ansible_run_tags"
 
 - name: "Ensure Beernary database is existing"
   community.mysql.mysql_db:
     name: "{{ beernary_database_name }}"
     state: "present"
   register: database_status
+  tags: update_database
+  when: "'update_database' in ansible_run_tags"
 
 - name: "Create user for beernary database"
   community.mysql.mysql_user:
@@ -86,7 +90,8 @@
     encoding: "latin1"
     target: "/tmp/{{ item }}"
   loop: "{{ beernary_database_sql_files }}"
-  when: database_status.changed
+  tags: update_database
+  when: "'update_database' in ansible_run_tags or database_status.changed"
 
 - name: "Backup current Beernary database if not empty"
   when: not database_status.changed

@@ -7,6 +7,7 @@ This application is for operation of the beernary's registry component
 # standard imports
 import sys
 import configparser
+import signal
 
 # pip packages
 import time
@@ -24,11 +25,20 @@ import modules.display
 import modules.flowsensor
 import modules.reader
 import modules.valve
+import modules.light
 
 CONFIG_FILE_PATH    = "/etc/beernary/config.ini"
 
-def wait_for_draft():
-    sleep(30)
+global valve    # required for immediately
+
+def exit(*args):
+    """Exit function called by SIGTERM for clean rundown"""
+    logger.critical("System shutdown initiated via SIGINT")
+
+    valve.unlocked = False
+
+    GPIO.cleanup()
+    sys.exit(0)
 
 def main():
     """This function operates the beernary counter application"""
@@ -37,28 +47,27 @@ def main():
     config                 = configparser.ConfigParser(allow_no_value=True)
     config.read(CONFIG_FILE_PATH)
 
-    log_level               = config.get("system",            "log_level")
+    log_level               = config.get("system",           "log_level")
 
     mysql_host              = config.get("mysql",            "hostname")
     mysql_user              = config.get("mysql",            "username")
     mysql_password          = config.get("mysql",            "password")
     mysql_database          = config.get("mysql",            "database")
 
+    signal_light_device     = config.get("serial_devices",   "signal_light")
+
     rfid_serial_device      = config.get("serial_devices",   "rfid_reader")
-    gpio_pin_flowsensor     = int(config.get("gpio_pins",        "flowsensor"))
-    gpio_pin_valve          = int(config.get("gpio_pins",        "valve"))
+    gpio_pin_flowsensor     = int(config.get("gpio_pins",    "flowsensor"))
+    gpio_pin_valve          = int(config.get("gpio_pins",    "valve"))
+    gpio_pin_valve_2          = int(config.get("gpio_pins",  "valve_2"))
 
     #  Local variables
     current_user_id         = ""
-    current_user_pulses     = int
     current_user_pulses_stx = int   # pulses before draft
     current_user_pulses_etx = int   # pulses after draft
-    previous_user_id        = ""
 
     current_keg_id          = int
-    current_keg_pulses      = int
     previous_keg_id         = current_keg_id
-    previous_keg_pulses     = current_keg_pulses
 
     event_id                = None
     event_name              = None
@@ -72,6 +81,12 @@ def main():
     display                 = modules.display.LCDDisplay()
     display.enabled         = True  # enable backlight
 
+    # Initalize signal light
+    signal_light            = modules.light.BeernarySignalLight(signal_light_device, 9600)
+    signal_light.send_command(signal_light.GREEN_OFF)
+    signal_light.send_command(signal_light.RED_OFF)
+    signal_light.send_command(signal_light.RED_ON)
+
     # Initialize valve
     valve                   = modules.valve.Valve(gpio_pin_valve)
 
@@ -84,7 +99,7 @@ def main():
 
     except serial.serialutil.SerialException:
         logger.critical(f"Could not open serial device: {rfid_serial_device}")
-        display.send_message("[E] Serial setup error", 2 ,1)
+        display.send_message("[E] Serial setup error", 2 ,"ljust")
         sys.exit(1)
 
     else:
@@ -99,7 +114,7 @@ def main():
 
     except Exception as exception:
         logger.critical(f"Could not open database : {exception}")
-        display.send_message("[E] Database failed",2,1)
+        display.send_message("[E] Database failed",2,"ljust")
         sys.exit(1)
 
     else:
@@ -113,7 +128,7 @@ def main():
 
     except modules.database.BeernaryTransactionLogicError as exception:
         logger.critical(f"Could not open active event: {exception}")
-        display.send_message("[E] Event setup error",2,1)
+        display.send_message("[E] Event setup error",2,"ljust")
         sys.exit(1)
 
     else:
@@ -136,13 +151,12 @@ def main():
     logger.info("Beernary successfully initialized! Welcome home.")
 
     # Bootscreen
-    display.send_message("  Beernary Counter  ",      1,1)
-    display.send_message("                    ",      2,1)
-    display.send_message("     Welcome to     ",      3,1)
-    display.send_message(current_event_name.zfill(0), 4,1)
+    display.send_message("  Beernary Counter  ",      1,"ljust")
+    display.send_message("                    ",      2,"ljust")
+    display.send_message("     Welcome to     ",      3,"ljust")
+    display.send_message(event_name, 4,"centred")
     time.sleep(5)
 
-    display.enabled = False
     valve.unlocked  = False
 
     # Main application loop
@@ -150,48 +164,58 @@ def main():
 
         # Handle keg rotation
         try:
-            current_keg_id = database.get_current_keg(current_event_id)
+            current_keg_id = database.get_current_keg(event_id)
 
             # detect rotated keg
             if previous_keg_id != current_keg_id:                               # detect rotation in database based on keg ID               pylint: disable=line-too-long
 
                 current_keg_pulses = database.get_keg_pulses(current_keg_id)    # set pulses for current keg as in database for new keg     pylint: disable=line-too-long
-                previous_keg_id    = current_keg_id                             # finish rotation by adjusting keg ID                       pylint: disable=line-too-long
                 logger.info(f"Successfully rotated keg {previous_keg_id} to {current_keg_id}")
+                previous_keg_id    = current_keg_id                             # finish rotation by adjusting keg ID                       pylint: disable=line-too-long
 
         except modules.database.BeernaryTransactionLogicError as exception:
             logger.critical(f"Could not get active keg: {exception}")
             display.send_message("[E] Keg setup error ", 2, 1)
             sys.exit(1)
 
-        display.send_messageg("   Please scan tag  ",3,1)
-        display.send_messageg("                    ",4,1)
+        signal_light.send_command(signal_light.RED_ON)
+        display.send_message("   Please scan tag  ",3,"ljust")
+        display.send_message("                    ",4,"ljust")
 
         current_user_id = rfid_reader.read_rfid() # blocking/waiting
-        logger.debug(f"Read RFID tag: {current_user_id}")
+        logger.info(f"Received RFID tag: {current_user_id}")
 
         # Sanity check from reader
         if current_user_id is not None:
 
             display.enabled = True
 
-            current_user_name = database.check_user(f"{current_user_id:08X}")[0]
+            current_user_name = database.check_user(current_user_id)
 
             # Implicit check for unauthorized user
             if current_user_name is not None:
 
-                logger.debug(f"Authorized user: {current_user_id:08X} {current_user_name}")
+                logger.info(f"Authorized user: {current_user_name}")
 
                 # "Map" start pulse count to user context
                 current_user_pulses_stx = flowsensor.pulses
                 logger.debug(f"STX pulse value for {current_user_name}: {current_user_pulses_stx}")
 
-                display.send_message("User "+str(current_user_name), 3,1)
-                display.send_message("Draft unlocked now!",          4,1)
+                signal_light.send_command(signal_light.RED_OFF)
+                signal_light.send_command(signal_light.GREEN_BLINK)
+                display.send_message(f"User {current_user_name}", 3, "ljust")
 
                 valve.unlocked = True
 
-                wait_for_draft() # blocking/waiting
+                unlock_time    = 10
+                warning_time   = 5
+                for i in range (unlock_time):
+                    time.sleep(1)
+                    display.send_message(f"Draft time left: {unlock_time-i}s",   4, "ljust")
+
+                    if i > warning_time:
+                        signal_light.send_command(signal_light.GREEN_OFF)
+                        signal_light.send_command(signal_light.YELLOW_ON)
 
                 valve.unlocked = False
 
@@ -206,22 +230,38 @@ def main():
                     logger.critical(f"Could not store draft: {exception}")
                     sys.exit(1)
 
+                signal_light.send_command(signal_light.YELLOW_OFF)
+                signal_light.send_command(signal_light.GREEN_OFF)
+
             # Handling of unauthorized user
             elif current_user_name is None:
-                logger.debug(f"Unauthorized user: {current_user_id:08X}")
-                display.send_messageg("Unauthorized access!",   3, 1)
-                display.send_messageg("Staff is informed",      4, 1)
+                logger.warning(f"Unauthorized user: {current_user_id}")
 
-        beernary_lcd.lcd_toggle_backlight(False) # background mode
+                signal_light.send_command(signal_light.RED_OFF)
+                signal_light.send_command(signal_light.RED_BLINK)
+                display.send_message("Unauthorized access!",   3, "ljust")
+                display.send_message("Staff is informed",      4, "ljust")
+
+                signal_light.send_command(signal_light.BUZZER_ON)
+                time.sleep(0.2)
+                signal_light.send_command(signal_light.BUZZER_OFF)
+                time.sleep(0.2)
+                signal_light.send_command(signal_light.BUZZER_ON)
+                time.sleep(0.2)
+                signal_light.send_command(signal_light.BUZZER_OFF)
+
+                time.sleep(2)
+                signal_light.send_command(signal_light.RED_OFF)
+
+        rfid_reader.flush_queue()
 
 if __name__ == '__main__':
+
+    signal.signal(signal.SIGTERM, exit)
 
     try:
         main()
 
-    except KeyboardInterrupt:
-        beernary_lcd.lcd_send_bit(0x01, beernary_lcd.LCD_CMD)
-        display.send_messageg("Shutting down (CTRL+Z)",1,2)
-
-    finally:
-        GPIO.cleanup()
+    except Exception as exception:
+        logger.critical(f"System error: {exception}")
+        raise

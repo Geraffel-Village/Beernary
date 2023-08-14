@@ -25,3 +25,12 @@ To ensure Ansible can reach the Raspberry Pi, you only have to change the IP add
 ### Deploying for Production
 
 To ensure Ansible can reach the Raspberry Pi, you only have to change the IP address in `inventory-production.yml`.
+
+### Ansible Tags for Deployment
+
+- `beernary-database`            - Database roles
+- `beernary-counter`             - Application role
+- `beernary_database_backup`     - Create backup of database
+
+- `update_app`                   - Update core app
+- `update_database`              - Will update database
