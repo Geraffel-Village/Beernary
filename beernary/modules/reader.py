@@ -6,6 +6,7 @@ Controls the beenary's integrated (RFID) reader.Supports different types (abstra
 
 from abc import ABC, abstractmethod
 import serial
+import struct
 
 from loguru import logger
 
@@ -43,11 +44,15 @@ class IdentityReader(ABC):
         Important: this method shall not be implemented async!
         """
 
+    @abstractmethod
+    def flush_queue(self):
+        """
+        Abstract method to flush inputs of a reader.
+        Triggered to free serial queue while draft is in progress.
+        """
+
 class UsbRfidReader(IdentityReader):
     """Represents an USB-based RFID reader with high-level tag read implementation"""
-
-    device_path : str
-    baud_rate   : int
 
     RFID_START  = "\x04"
     RFID_END    = "\x02"
@@ -81,8 +86,8 @@ class RawRfidReader(IdentityReader):
     device_path = str
     baud_rate   = int
 
-    RFID_START              = 2
-    RFID_END                = 3
+    RFID_START              = b"\x02"
+    RFID_END                = b"\x03"
 
     def read_rfid(self):
         """
@@ -95,30 +100,43 @@ class RawRfidReader(IdentityReader):
 
         while True:
             serial_data = self.serial_reader.read(1)
+            logger.trace(f"Received byte: {serial_data}")
 
             if serial_data == self.RFID_START:
                 logger.debug("RFID start byte detected")
 
-                tag_data = self.serial_reader.read(10)
-                logger.debug(f"Read RFID tag (data: {tag_data})")
+                tag_raw         = []                      # raw data bytes as int
+                tag_data        = bytes()                 # hex data bytes as string
 
-                checksum_data = self.serial_reader.read(1)
-                logger.debug(f"Read RFID tag (checksum: {checksum_data})")
-                checksum_data = int(checksum_data, 16)
+                for i in range(10):   # read 10 bytes (data)
+                    tag_fragment = self.serial_reader.read(1)
 
-                self.serial_reader.reset_input_buffer()
+                    tag_data += tag_fragment
+                    tag_raw.append(int(tag_fragment, 16))
 
-                calculated_checksum = self.calculate_checksum(tag_data)
-                logger.debug(f"Calculated RFID tag (checksum: {calculated_checksum})")
+                tag_data = tag_data.decode("ASCII")       # cast hex chars into "real" string
+
+                checksum_raw    = []                      # raw checksum bytes as int
+
+                for i in range(2):   # read 10 bytes (checksum)
+                    checksum_fragment = self.serial_reader.read(1)
+                    checksum_raw.append(int(checksum_fragment, 16))
+
+                logger.debug(f"Read RFID tag with ID: {tag_data}")
+
+                checksum_data = checksum_raw[0] << 4
+                checksum_data = checksum_data | checksum_raw[1]
+                logger.debug(f"RFID tag {tag_data} has checksum: {checksum_data}")
+
+                calculated_checksum = self.calculate_checksum(tag_raw)
+                logger.debug(f"Calculated RFID tag checksum: {calculated_checksum}")
 
                 if calculated_checksum != checksum_data:
-                    logger.error(f"Checksum of RFID tag did not match: {tag_data}")
+                    logger.error(f"RFID tag {tag_data} checksums do not match")
                 else:
-                    logger.debug(f"Checksum of RFID tag did match: {tag_data}")
+                    logger.debug(f"RFID tag {tag_data} checksums match")
 
-                tag_data = tag_data[1:9].decode('ASCII')
-
-                logger.info(f"Read RFID tag (id: {tag_data})")
+                self.flush_queue()
                 return tag_data
 
             elif serial_data == '':
@@ -133,7 +151,7 @@ class RawRfidReader(IdentityReader):
         Note: this method was written by https://github.com/philippmeisberger/pyrfid/.
         """
 
-        calculated_checksum = 0
+        calculated_checksum     = 0
 
         # Process two characters (one byte) at at time
         for i in range(0, 10, 2):
@@ -148,3 +166,7 @@ class RawRfidReader(IdentityReader):
             calculated_checksum = calculated_checksum ^ byte
 
         return calculated_checksum
+
+    def flush_queue(self):
+        """Flushes inputs of the serial reader."""
+        self.serial_reader.reset_input_buffer()

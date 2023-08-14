@@ -21,6 +21,7 @@
     autoremove: true
     autoclean: true
   become: true
+  when: os_configuration_apt_upgrade
 
 - name: "Allow Beernary team's SSH keys for root user"
   ansible.posix.authorized_key:

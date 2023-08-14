@@ -1,0 +1,8 @@
+# code: language=yaml
+---
+production:
+  children:
+    beernary-counter:
+      hosts:
+        beernary-prod:
+          ansible_host: beernary-prod # via ssh_config

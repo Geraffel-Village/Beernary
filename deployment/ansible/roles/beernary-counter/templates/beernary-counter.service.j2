@@ -1,5 +1,6 @@
 [Unit]
 Description=beernary-counter
+After=mariadb.service
 
 [Service]
 WorkingDirectory={{ beernary_counter_destination_path }}

@@ -4,3 +4,5 @@ os_configuration_ssh_keys:
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGinqYjP1jDrEAbWtM1aaznWYELJK5H/ok30rXQz4d2d Ziehmon"
 os_configuration_unrequired_services:
   - "avahi-daemon"
+
+os_configuration_apt_upgrade: true

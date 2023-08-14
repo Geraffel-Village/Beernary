@@ -6,6 +6,7 @@ Controls the beenary's persistent data operations. Supports different types (abs
 
 from abc import ABC, abstractmethod
 
+import pymysql
 from loguru import logger
 
 class BeernaryTransactionLogicError(Exception):
@@ -121,15 +122,6 @@ class BeernaryTransaction(ABC):
         """
 
     @abstractmethod
-    def set_active_event(self, event_id):
-        """
-        Abstract method to set the current event.
-
-        Parameters:
-        event_id   - ID of the current event
-        """
-
-    @abstractmethod
     def get_active_event(self):
         """Abstract method to get the current event."""
 
@@ -145,15 +137,22 @@ class BeernaryMysqlTransaction(BeernaryTransaction):
     # User transactions
 
     def check_user(self, user_id):
-        self.cursor.execute ("SELECT `name` FROM `users` WHERE id = '"+user_id+"';")
-        return self.cursor.fetchone()
+        self.connection.begin()
+        self.cursor.execute (f"SELECT `name` FROM `users` WHERE `id` = '{user_id}';")
+
+        result = self.cursor.fetchone()
+        if result is not None:
+            return result[0]
+        else:
+            return None
 
     def get_users(self):
+        self.connection.begin()
         self.cursor.execute ("SELECT `id`, `name`, `timestamp` FROM users ORDER BY `timestamp` DESC;") # pylint: disable=line-too-long
         return self.cursor.fetchall()
 
     def add_user(self, user_id, user_name):
-        self.cursor.execute("SELECT id FROM `users` WHERE `id` = '{user_id}';")
+        self.cursor.execute(f"SELECT id FROM `users` WHERE `id` = '{user_id}';")
 
         if self.cursor.rowcount != 0:
             logger.critical(f"User with ID {user_id} is already registered")
@@ -165,9 +164,9 @@ class BeernaryMysqlTransaction(BeernaryTransaction):
             logger.critical(f"User with name {user_name} already has tag assigned")
             raise BeernaryTransactionLogicError("Name already registered")
 
-        self.cursor.execute("INSERT IGNORE INTO `users` SET `id` = '{user_id}', `name` = '{user_name}';") # pylint: disable=line-too-long
+        self.cursor.execute(f"INSERT IGNORE INTO `users` SET `id` = '{user_id}', `name` = '{user_name}';") # pylint: disable=line-too-long
         self.connection.commit()
-        logger.info("Added user with ID {user_id} and name {user_name}")
+        logger.info(f"Added user with ID {user_id} and name {user_name}")
 
     def delete_user(self, user_id):
         try:
@@ -189,7 +188,8 @@ class BeernaryMysqlTransaction(BeernaryTransaction):
     # Keg transactions
 
     def get_keg_pulses(self, keg_id):
-        self.cursor.execute ("SELECT pulses FROM `keg` WHERE kegid={keg_id}")
+        self.connection.begin()
+        self.cursor.execute (f"SELECT pulses FROM `keg` WHERE kegid={keg_id}")
         return self.cursor.fetchone()[0]
 
     def set_keg_pulses(self, keg_id, pulses):
@@ -198,13 +198,14 @@ class BeernaryMysqlTransaction(BeernaryTransaction):
         logger.debug(f"Added {pulses} pulses to keg {keg_id}")
 
     def get_events(self):
+        self.connection.begin()
         self.cursor.execute ("SELECT name, eventid FROM `event` ORDER by name")
         return self.cursor.fetchall()
 
     def new_keg(self, event_id, volume):
 
         # mark current keg as empty (implict by method usage)
-        self.cursor.execute("UPDATE `keg` SET `isempty`= True WHERE eventid = {event_id} AND isEmpty = False;") # pylint: disable=line-too-long
+        self.cursor.execute(f"UPDATE `keg` SET `isempty`= True WHERE eventid = {event_id} AND isEmpty = False;") # pylint: disable=line-too-long
 
         if self.cursor.rowcount == 0:
             logger.info("No non-empty kegs detected, adding first")
@@ -217,10 +218,11 @@ class BeernaryMysqlTransaction(BeernaryTransaction):
             logger.critical("Invalid amount of non-empty kegs - aborting")
             raise BeernaryTransactionLogicError("More than one non-empty keg in database")
 
-        self.cursor.execute ("INSERT INTO `keg` (eventid, volume) VALUES ({event_id}, {volume})")
+        self.cursor.execute (f"INSERT INTO `keg` (eventid, volume) VALUES ({event_id}, {volume})")
         self.connection.commit()
 
     def get_current_keg(self, event_id):
+        self.connection.begin()
         self.cursor.execute(f"SELECT kegid FROM `keg` WHERE eventid = {event_id} AND isEmpty = False;") # pylint: disable=line-too-long
 
         if self.cursor.rowcount != 1:
@@ -233,10 +235,12 @@ class BeernaryMysqlTransaction(BeernaryTransaction):
     # Event transactions
 
     def get_event_name(self, event_id):
+        self.connection.begin()
         self.cursor.execute (f"SELECT `name` FROM `event` WHERE eventid = {event_id};")
         return self.cursor.fetchone()[0]
 
     def get_active_event(self):
+        self.connection.begin()
         self.cursor.execute("SELECT eventid, name FROM `event` where selected = true;")
 
         if self.cursor.rowcount != 1:
