@@ -4,9 +4,10 @@ beernary_database_sql_files:
   - "beernary-schema.sql"
   - "beernary-data.sql"
 beernary_counter_config_mysql_hostname: "127.0.0.1"
-beernary_counter_config_mysql_username: "changme"
-beernary_counter_config_mysql_password: "changme"
+beernary_counter_config_mysql_username: "root"
+beernary_counter_config_mysql_password: "changeme"
 beernary_counter_config_mysql_database: "beernary"
+beernary_counter_config_mock_devices_enabled: true
 beernary_counter_config_serial_rfid_reader: "/dev/ttyS0"
 beernary_counter_config_serial_signal_light: "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
 beernary_counter_config_serial_arduino: "/dev/serial/by-id/usb-1a86_USB_Serial-if00-port0"
