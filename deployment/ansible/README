@@ -16,6 +16,12 @@ Also, it is required that you are able to login without specifying a user (use `
 
 There are some differences between deploying a testing environment (e.g. at Home) and a production environment (e.g. Chaos Communication Camp 2023) which are mostly related to mocking the Keg / Vent system. Use the inventory according to the target environment as described in the next section.
 
+The initial Deployments needs to include the tags to initialize mariadb and influxdb. Example for the test environment:
+
+```sh
+ansible-playbook -i inventory-testing.yml playbook.yml --tags update_database,bootstrap_influxdb
+```
+
 ### Deploying for Testing
 
 To ensure Ansible can reach the Raspberry Pi, you only have to change the IP address in `inventory-testing.yml`. This should be the IP address of your local / remote testing Raspberry.
