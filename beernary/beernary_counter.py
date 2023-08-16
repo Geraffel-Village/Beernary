@@ -299,7 +299,7 @@ if __name__ == '__main__':
                     try:
                         database.store_draft(current_user_id, current_user_pulses)
                         database.set_keg_pulses(current_keg_id, current_keg_pulses)
-                        metricsClient.push_draft(0, current_user_id, current_user_pulses)
+                        metricsClient.push_draft(current_user_tap, current_user_id, current_user_pulses)
                     except modules.database.BeernaryTransactionLogicError as exception:
                         logger.critical(f"Could not store draft: {exception}")
                         sys.exit(1)
