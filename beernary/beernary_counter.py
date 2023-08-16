@@ -36,6 +36,7 @@ def shutdown(exception=None):
         signal_light.send_command(signal_light.GREEN_OFF)
         signal_light.send_command(signal_light.RED_OFF)
         signal_light.send_command(signal_light.YELLOW_OFF)
+        signal_light.send_command(signal_light.RED_BLINK)
     except Exception as exception:
         pass # power outage of signal light
 
@@ -43,14 +44,11 @@ def shutdown(exception=None):
     valve.unlocked = False
     GPIO.cleanup()
 
-    if exception is not None:
+    try:
         logger.critical(f"System shutdown initiated via exception: {exception}")
-        signal_light.send_command(signal_light.RED_BLINK)
-        raise(exception)
-
-    else:
+        sys.exit(1)
+    except NameError:
         logger.critical("System shutdown initiated via SIGINT")
-        signal_light.send_command(signal_light.RED_ON)
         sys.exit(0)
 
 if __name__ == '__main__':
@@ -183,7 +181,7 @@ if __name__ == '__main__':
         display.send_message("                    ",      2,"ljust")
         display.send_message("     Welcome to     ",      3,"ljust")
         display.send_message(event_name, 4,"centred")
-        time.sleep(5)
+        time.sleep(2)
 
         valve.unlocked  = False
 
