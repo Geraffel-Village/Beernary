@@ -8,6 +8,7 @@ This application is for operation of the beernary's registry component
 import sys
 import configparser
 import signal
+import random
 
 # pip packages
 import time
@@ -64,6 +65,7 @@ if __name__ == '__main__':
         config.read(CONFIG_FILE_PATH)
 
         log_level                   = config.get("system",           "log_level")
+        mock_devices_enabled        = bool(config.get("system",      "mock_devices_enabled"))
 
         mysql_host                  = config.get("mysql",            "hostname")
         mysql_user                  = config.get("mysql",            "username")
@@ -111,7 +113,11 @@ if __name__ == '__main__':
 
         # Initalize signal light
         global signal_light
-        signal_light            = modules.light.BeernarySignalLight(signal_light_device, 9600)
+
+        if mock_devices_enabled == True:
+            signal_light = modules.light.BeernarySignalLightMock(None, None)
+        else:
+            signal_light = modules.light.BeernarySignalLight(signal_light_device, 9600)
         signal_light.send_command(signal_light.GREEN_OFF)
         signal_light.send_command(signal_light.RED_OFF)
         signal_light.send_command(signal_light.RED_ON)
@@ -125,19 +131,25 @@ if __name__ == '__main__':
             valve_2             = modules.valve.Valve(gpio_pin_valve_2)
 
         # Initalize flowsensor
-        flowsensor              = modules.flowsensor.PulseFlowsensor(gpio_pin_flowsensor)
+        if mock_devices_enabled == True:
+            flowsensor = modules.flowsensor.PulseFlowsensorMock(None)
+        else:
+            flowsensor = modules.flowsensor.PulseFlowsensor(gpio_pin_flowsensor)
 
         # Reader initialization
-        try:
-            rfid_reader = modules.reader.RawRfidReader(rfid_serial_device, 9600)
-
-        except serial.serialutil.SerialException:
-            logger.critical(f"Could not open serial device: {rfid_serial_device}")
-            display.send_message("[E] Serial setup error", 2 ,"ljust")
-            sys.exit(1)
-
+        if mock_devices_enabled == True:
+            rfid_reader = modules.reader.MockRfidReader(None, None)
         else:
-            logger.info(f"Successfully opened serial device: {rfid_serial_device}")
+            try:
+                rfid_reader = modules.reader.RawRfidReader(rfid_serial_device, 9600)
+
+            except serial.serialutil.SerialException:
+                logger.critical(f"Could not open serial device: {rfid_serial_device}")
+                display.send_message("[E] Serial setup error", 2 ,"ljust")
+                sys.exit(1)
+
+            else:
+                logger.info(f"Successfully opened serial device: {rfid_serial_device}")
 
         # Database initialization
         try:
@@ -286,6 +298,9 @@ if __name__ == '__main__':
                         if i >= draft_time_warning:
                             signal_light.send_command(signal_light.GREEN_OFF)
                             signal_light.send_command(signal_light.YELLOW_BLINK)
+
+                        if mock_devices_enabled is True:
+                            flowsensor.add_pulse(random.randint(1,10))
 
                     tap_valve.unlocked = False
 

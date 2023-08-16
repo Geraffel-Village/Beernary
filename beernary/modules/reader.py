@@ -5,8 +5,9 @@ Controls the beenary's integrated (RFID) reader.Supports different types (abstra
 """
 
 from abc import ABC, abstractmethod
-import serial
+import time
 import struct
+import serial
 
 from loguru import logger
 
@@ -176,3 +177,23 @@ class RawRfidReader(IdentityReader):
     def flush_queue(self):
         """Flushes inputs of the serial reader."""
         self.serial_reader.reset_input_buffer()
+
+class MockRfidReader(IdentityReader):
+    """A simple mock for testing without physical rfid sensor."""
+
+    device_path = str
+    baud_rate   = int
+
+    RFID_START  = b"\x00"
+    RFID_END    = b"\x00"
+
+    def __init__(self, device_path, baud_rate):
+        return
+
+    def read_rfid(self):
+        time.sleep(10)
+        return "42DEADBE"
+
+    def flush_queue(self):
+        return
+    
