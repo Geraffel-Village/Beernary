@@ -183,3 +183,7 @@ class LCDDisplay(Display):
         # send message to STDOUT too, if configured
         if self.LCD_STDOUT is True:
             print(message)
+
+    def clear(self):
+        """Clears the display."""
+        self.send_bit(0x01, self.LCD_CMD)

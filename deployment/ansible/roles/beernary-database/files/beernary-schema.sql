@@ -9,7 +9,7 @@ CREATE TABLE `consume` (
   `pulses` int(11) NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`autoid`)
-) ENGINE=InnoDB AUTO_INCREMENT=239 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 --
 -- Table structure for table `event`
@@ -22,7 +22,7 @@ CREATE TABLE `event` (
   `selected` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`eventid`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 --
 -- Table structure for table `keg`
@@ -36,7 +36,7 @@ CREATE TABLE `keg` (
   `pulses` int(11) DEFAULT '0',
   `isempty` tinyint(1) DEFAULT '0',
   PRIMARY KEY (`kegid`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 --
 -- Table structure for table `users`
@@ -45,6 +45,7 @@ CREATE TABLE `keg` (
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` varchar(10) NOT NULL,
+  `tapid` varchar(10) NOT NULL,
   `name` varchar(50) NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

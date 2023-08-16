@@ -31,7 +31,7 @@ class PulseFlowsensor:
 
         # Add GPIO handling to detect pulses
         GPIO.setup(self.gpio_pin, GPIO.IN)
-        GPIO.add_event_detect(self.gpio_pin, GPIO.RISING, lambda f: self.add_pulse)
+        GPIO.add_event_detect(self.gpio_pin, GPIO.RISING, callback=self.add_pulse)
 
 
     def add_pulse(self, pulses=1):
@@ -41,5 +41,4 @@ class PulseFlowsensor:
         Parameters:
         pulses  - (Optional) amount of pulses to add to counter
         """
-        print("Got impulse")
         self.pulses += pulses

@@ -2,3 +2,4 @@
 ---
 os_configuration_ssh_keys:
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGinqYjP1jDrEAbWtM1aaznWYELJK5H/ok30rXQz4d2d Ziehmon"
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHcqd2xuIJPEjkPQpaaFHDTIdUJVx8jA4elmWXUlY0QK Cyberkai"

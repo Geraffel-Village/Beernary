@@ -24,10 +24,16 @@ def new_user(database):
     print("Enter user tag ID as string: ")
     user_id = input()
 
+    print("Tap for user (default 1):")
+    tap_id = input()
+
+    if tap_id == "":
+        tap_id = 1
+
     print("Enter user name as string: ")
     user_name = input()
 
-    database.add_user(user_id, user_name)
+    database.add_user(user_id, tap_id, user_name)
 
 if __name__ == "__main__":
 

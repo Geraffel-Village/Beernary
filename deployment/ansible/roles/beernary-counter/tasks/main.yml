@@ -1,10 +1,6 @@
 # code: language=ansible
 ---
 
-- name: "Install application Python dependencies"
-  ansible.builtin.pip:
-    requirements: "{{ beernary_counter_destination_path }}/requirements.txt"
-
 - name: "Ensure Beernary application user exists"
   ansible.builtin.user:
     name: "{{ beernary_counter_application_user }}"
@@ -24,6 +20,10 @@
     - "Restart beernary-counter"
   tags: update_app
 
+- name: "Install application Python dependencies"
+  ansible.builtin.pip:
+    requirements: "{{ beernary_counter_destination_path }}/requirements.txt"
+
 - name: "Set file permissions for application directory"
   ansible.builtin.file:
     path: "{{ beernary_counter_destination_path }}"
@@ -35,6 +35,14 @@
     - "Restart beernary-counter"
   tags: update_app
 
+- name: "Add execute permission to cli file"
+  ansible.builtin.file:
+    path: "{{ beernary_counter_destination_path }}beernary_cli.py"
+    mode: "0744"
+    owner: "{{ beernary_counter_application_user }}"
+    group: "{{ beernary_counter_application_group }}"
+  tags: update_app
+
 - name: "Create symlink for beernary-cli"
   ansible.builtin.file:
     src: "{{ beernary_counter_destination_path }}beernary_cli.py"
@@ -42,6 +50,7 @@
     state: link
     owner: "{{ beernary_counter_application_user }}"
     group: "{{ beernary_counter_application_group }}"
+  tags: update_app
 
 - name: "Create application log directory"
   ansible.builtin.file:
@@ -85,6 +94,7 @@
     mode: "0644"
   notify:
     - "Restart beernary-counter"
+  tags: update_app
 
 # Final health check for beernary after deployment
 
@@ -97,4 +107,4 @@
 - name: "Let ansible fail if beernary is not running"
   ansible.builtin.fail:
     msg: "beernary-counter application not running!"
-  when: ansible_facts.services['beernary-counter.service']['state'] != 'running'#
+  when: ansible_facts.services['beernary-counter.service']['state'] != 'running'

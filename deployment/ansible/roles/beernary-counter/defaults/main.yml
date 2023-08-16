@@ -14,5 +14,8 @@ beernary_counter_config_serial_signal_light: "/dev/ttyUSB1"
 beernary_counter_config_serial_arduino: "/dev/ttyUSB0"
 beernary_counter_config_gpio_valve: 6
 beernary_counter_config_gpio_valve_2: 7
+beernary_counter_config_gpio_valve_2_enabled: false
 beernary_counter_config_gpio_flowsensor: 5
 beernary_counter_config_log_level: "DEBUG"
+beernary_counter_config_draft_time_unlock: 30
+beernary_counter_config_draft_time_warning: 10
