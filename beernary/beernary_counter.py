@@ -32,9 +32,12 @@ CONFIG_FILE_PATH    = "/etc/beernary/config.ini"
 def shutdown(exception=None):
     """Exit function called by SIGTERM for clean rundown"""
 
-    signal_light.send_command(signal_light.GREEN_OFF)
-    signal_light.send_command(signal_light.RED_OFF)
-    signal_light.send_command(signal_light.YELLOW_OFF)
+    try:
+        signal_light.send_command(signal_light.GREEN_OFF)
+        signal_light.send_command(signal_light.RED_OFF)
+        signal_light.send_command(signal_light.YELLOW_OFF)
+    except Exception as exception:
+        pass # power outage of signal light
 
     display.clear()
     valve.unlocked = False
