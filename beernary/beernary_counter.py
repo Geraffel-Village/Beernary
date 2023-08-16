@@ -37,7 +37,7 @@ def shutdown(exception=None):
         signal_light.send_command(signal_light.RED_OFF)
         signal_light.send_command(signal_light.YELLOW_OFF)
         signal_light.send_command(signal_light.RED_BLINK)
-    except Exception as exception:
+    except Exception:
         pass # power outage of signal light
 
     display.clear()
@@ -53,7 +53,7 @@ def shutdown(exception=None):
 
 if __name__ == '__main__':
 
-    signal.signal(signal.SIGTERM, exit)
+    signal.signal(signal.SIGTERM, shutdown)
 
     try:
 
