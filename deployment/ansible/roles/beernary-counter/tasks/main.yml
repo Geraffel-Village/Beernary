@@ -94,6 +94,7 @@
     mode: "0644"
   notify:
     - "Restart beernary-counter"
+  tags: update_app
 
 # Final health check for beernary after deployment
 

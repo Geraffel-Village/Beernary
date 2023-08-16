@@ -36,6 +36,7 @@ def shutdown(exception=None):
     signal_light.send_command(signal_light.RED_OFF)
     signal_light.send_command(signal_light.YELLOW_OFF)
 
+    display.clear()
     valve.unlocked = False
     GPIO.cleanup()
 
@@ -74,6 +75,9 @@ if __name__ == '__main__':
 
         gpio_pin_valve_2_enabled    = bool(config.get("gpio_pins",   "valve_2_enabled"))
         gpio_pin_valve_2            = int(config.get("gpio_pins",    "valve_2"))
+
+        draft_time_unlock            = int(config.get("draft",    "time_unlock"))
+        draft_time_warning           = int(config.get("draft",    "time_warning"))
 
         #  Local variables
         current_user_id         = ""
@@ -202,9 +206,14 @@ if __name__ == '__main__':
                 sys.exit(1)
 
             signal_light.send_command(signal_light.RED_ON)
+
+            display.clear()
+            display.send_message("  Beernary Counter  ",      1,"ljust")
+            display.send_message("                    ",      2,"ljust")
             display.send_message("   Please scan tag  ",3,"ljust")
             display.send_message("                    ",4,"ljust")
 
+            rfid_reader.flush_queue()
             current_user_id = rfid_reader.read_rfid() # blocking/waiting
             logger.info(f"Received RFID tag: {current_user_id}")
 
@@ -248,16 +257,14 @@ if __name__ == '__main__':
 
                     tap_valve.unlocked = True
 
-                    unlock_time    = 10
-                    warning_time   = 5
-                    for i in range (unlock_time):
+                    for i in range (draft_time_unlock):
                         time.sleep(1)
 
-                        display.send_message(f"Draft time left: {unlock_time-i}s",   4, "ljust")
+                        display.send_message(f"Draft time left: {draft_time_unlock-i}s",   4, "ljust")
 
-                        if i > warning_time:
+                        if i >= draft_time_warning:
                             signal_light.send_command(signal_light.GREEN_OFF)
-                            signal_light.send_command(signal_light.YELLOW_ON)
+                            signal_light.send_command(signal_light.YELLOW_BLINK)
 
                     tap_valve.unlocked = False
 

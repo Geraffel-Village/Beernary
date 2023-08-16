@@ -14,6 +14,8 @@ beernary_counter_config_gpio_valve: 6
 beernary_counter_config_gpio_valve_2: 7
 beernary_counter_config_gpio_valve_2_enabled: false
 beernary_counter_config_gpio_flowsensor: 5
+beernary_counter_config_draft_time_unlock: 20
+beernary_counter_config_draft_time_warning: 5
 beernary_database_root_password: "changeme"
 beernary_database_password: "changeme"
 os_configuration_apt_upgrade: true
