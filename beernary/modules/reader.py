@@ -54,8 +54,11 @@ class IdentityReader(ABC):
 class UsbRfidReader(IdentityReader):
     """Represents an USB-based RFID reader with high-level tag read implementation"""
 
-    RFID_START  = "\x04"
-    RFID_END    = "\x02"
+    device_path = str
+    baud_rate   = int
+
+    RFID_START  = b"\x04"
+    RFID_END    = b"\x02"
 
     def read_rfid(self):
         """
@@ -68,7 +71,6 @@ class UsbRfidReader(IdentityReader):
 
         while True:
             serial_data = self.serial_reader.read(1)
-
             if serial_data == self.RFID_START:
                 logger.debug("RFID start byte detected")
                 serial_data = self.serial_reader.read(10)
@@ -79,6 +81,10 @@ class UsbRfidReader(IdentityReader):
                 logger.debug("RFID read timeout/empty data")
             else:
                 continue
+
+    def flush_queue(self): # TODO: nest class
+        """Flushes inputs of the serial reader."""
+        self.serial_reader.reset_input_buffer()
 
 class RawRfidReader(IdentityReader):
     """Represents a serial-based RFID reader with full low-level tag read implementation"""
