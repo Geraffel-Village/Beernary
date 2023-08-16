@@ -196,7 +196,7 @@ class BeernaryMysqlTransaction(BeernaryTransaction):
     def set_keg_pulses(self, keg_id, pulses):
         self.cursor.execute (f"UPDATE `keg` SET pulses = {pulses} WHERE kegid = {keg_id}")
         self.connection.commit()
-        logger.debug(f"Added {pulses} pulses to keg {keg_id}")
+        logger.debug(f"Current pulses of keg {keg_id}: {pulses}")
 
     def get_events(self):
         self.connection.begin()
