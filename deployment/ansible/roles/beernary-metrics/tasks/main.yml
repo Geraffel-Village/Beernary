@@ -12,7 +12,7 @@
     state: present
     filename: influxdb
   register: influx_repo_setup
-  
+
 - name: Update apt database
   apt:
       update_cache: yes
