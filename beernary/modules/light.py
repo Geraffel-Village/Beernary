@@ -5,6 +5,7 @@ Controls the beenary's integrated signaling light. Currently https://www.adafrui
 """
 
 import serial
+import time
 
 class BeernarySignalLight():
     """
@@ -40,3 +41,4 @@ class BeernarySignalLight():
     def send_command(self, cmd):
         """Sends a command to the serial port."""
         self.serial_device.write(bytes([cmd]))
+        time.sleep(0.1)
