@@ -4,15 +4,15 @@
 Pushes time series to InfluxDB
 """
 
-from influxdb_client import InfluxDBClient
-from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb import InfluxDBClient
+from loguru import logger
 
 class BeernaryInfluxDBClient():
     """Represents the currently used InfluxDB client."""
-    def __init__(self, influx_url, influx_token, influx_org, influx_bucket):
-        self.client = InfluxDBClient(url=influx_url, token=influx_token, org=influx_org)
-        self.influx_bucket = influx_bucket
+    def __init__(self, influx_host, influx_port, influx_user, influx_password, influx_database):
+        self.client = InfluxDBClient(host=influx_host, port=influx_port, username=influx_user, password=influx_password, database=influx_database)
 
     def push_draft(self, tap, user, pulses):
-        with self.client.write_api(write_options=SYNCHRONOUS) as writer:
-            writer.write(bucket=self.influx_bucket, record="draft,user="+str(user)+",tap="+str(tap)+" pulses="+str(pulses))
+        influx_line = "draft,user="+str(user)+",tap="+str(tap)+" pulses="+str(pulses)
+        logger.debug(f"Writing influxdb line: {influx_line}")
+        self.client.write_points(points=influx_line, protocol="line")

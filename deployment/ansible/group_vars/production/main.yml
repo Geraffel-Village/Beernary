@@ -21,9 +21,8 @@ os_configuration_apt_upgrade: false
 
 beernary_influxdb_username: "beernary"
 beernary_influxdb_password: "fb2b207c48bca4d047851b709bd19427"
-beernary_influxdb_token: "4b4b031863dbb9493e013393bbf3b487"
-beernary_influxdb_org: "beernary"
-beernary_influxdb_bucket: "prod"
+beernary_influxdb_database: "beernary-prod"
 beernary_influxdb_loglevel: "warn"
 beernary_influxdb_enable_http_log: "false"
-beernary_influxdb_http_bind_address: "127.0.0.1:8086"
+beernary_influxdb_http_host: 127.0.0.1
+beernary_influxdb_http_port: 8086

@@ -41,4 +41,4 @@ To ensure Ansible can reach the Raspberry Pi, you only have to change the IP add
 - `update_app`                   - Update core app
 - `update_database`              - Will update the database
 
-- `bootstrap_influxdb`           - Create InfluxDB Credentials, Org, Bucket
+- `bootstrap_influxdb`           - Create InfluxDB database and credentials

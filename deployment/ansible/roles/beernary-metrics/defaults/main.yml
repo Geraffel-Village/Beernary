@@ -4,12 +4,10 @@
 # server settings
 beernary_influxdb_loglevel: "warn"
 beernary_influxdb_enable_http_log: "false"
-beernary_influxdb_bind_address: "127.0.0.1:8088"
-beernary_influxdb_http_bind_address: "127.0.0.1:8086"
+beernary_influxdb_http_host: 127.0.0.1
+beernary_influxdb_http_port: 8086
 
 # bootstrapping
 beernary_influxdb_username: "beernary"
 beernary_influxdb_password: "changeme"
-beernary_influxdb_token: "changeme"
-beernary_influxdb_org: "beernary"
-beernary_influxdb_bucket: "dev"
+beernary_influxdb_database: "beernary-dev"
