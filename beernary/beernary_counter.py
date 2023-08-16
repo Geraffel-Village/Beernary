@@ -46,7 +46,8 @@ def shutdown(exception=None):
 
     try:
         logger.critical(f"System shutdown initiated via exception: {exception}")
-        sys.exit(1)
+        raise(exception)
+
     except NameError:
         logger.critical("System shutdown initiated via SIGINT")
         sys.exit(0)
@@ -254,7 +255,7 @@ if __name__ == '__main__':
                         tap_valve = valve_2
 
                     else:
-                        raise(modules.database. BeernaryTransactionLogicError(f"Invalid tap ID: {current_user_tap} with type {type(current_user_tap)}"))
+                        raise(modules.database.BeernaryTransactionLogicError(f"Invalid tap ID: {current_user_tap} with type {type(current_user_tap)}"))
 
                     tap_valve.unlocked = True
 
