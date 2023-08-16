@@ -21,6 +21,7 @@ except: # pylint: disable=bare-except
 
 # custom beernary
 import modules.database
+import modules.metrics
 import modules.display
 import modules.flowsensor
 import modules.reader
@@ -68,6 +69,11 @@ if __name__ == '__main__':
         mysql_user                  = config.get("mysql",            "username")
         mysql_password              = config.get("mysql",            "password")
         mysql_database              = config.get("mysql",            "database")
+
+        influxdb_url                = config.get("influxdb",         "url")
+        influxdb_org                = config.get("influxdb",         "org")
+        influxdb_token              = config.get("influxdb",         "token")
+        influxdb_bucket             = config.get("influxdb",         "bucket")
 
         signal_light_device         = config.get("serial_devices",   "signal_light")
 
@@ -146,6 +152,18 @@ if __name__ == '__main__':
 
         else:
             logger.info(f"Successfully opened database: {mysql_database} at {mysql_host}")
+
+        # InfluxDB initialization
+        try:
+            metricsClient = modules.metrics.BeernaryInfluxDBClient(influxdb_url, influxdb_token, influxdb_org, influxdb_bucket)
+
+        except Exception as exception:
+            logger.critical(f"Could not connect to InfluxDB {exception}")
+            display.send_message("[E] InfluxDB failed",2,"ljust")
+            sys.exit(1)
+
+        else:
+            logger.info(f"Successfully started InfluxDB connection to server: {influxdb_url}")
 
         # Event initialization
         try:
@@ -281,6 +299,7 @@ if __name__ == '__main__':
                     try:
                         database.store_draft(current_user_id, current_user_pulses)
                         database.set_keg_pulses(current_keg_id, current_keg_pulses)
+                        metricsClient.push_draft(0, current_user_id, current_user_pulses)
                     except modules.database.BeernaryTransactionLogicError as exception:
                         logger.critical(f"Could not store draft: {exception}")
                         sys.exit(1)

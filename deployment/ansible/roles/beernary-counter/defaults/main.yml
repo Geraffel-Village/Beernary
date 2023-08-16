@@ -19,3 +19,7 @@ beernary_counter_config_gpio_flowsensor: 5
 beernary_counter_config_log_level: "DEBUG"
 beernary_counter_config_draft_time_unlock: 30
 beernary_counter_config_draft_time_warning: 10
+beernary_counter_config_influxdb_url: "http://{{ beernary_influxdb_http_bind_address }}"
+beernary_counter_config_influxdb_token: "{{ beernary_influxdb_token }}"
+beernary_counter_config_influxdb_org: "{{ beernary_influxdb_org }}"
+beernary_counter_config_influxdb_bucket: "{{ beernary_influxdb_bucket }}"

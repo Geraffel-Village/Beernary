@@ -1,0 +1,20 @@
+bind-address = "{{ beernary_influxdb_bind_address }}"
+
+[meta]
+  dir = "/var/lib/influxdb/meta"
+
+[data]
+  dir = "/var/lib/influxdb/data"
+  wal-dir = "/var/lib/influxdb/wal"
+  query-log-enabled = false
+  series-id-set-cache-size = 100
+  index-version = "tsi1"
+  max-concurrent-compactions = 1
+  #compact-throughput-burst = "5m"
+
+[http]
+  bind-address = "{{ beernary_influxdb_http_bind_address }}"
+  log-enabled = {{ beernary_influxdb_enable_http_log }}
+
+[logging]
+  level = "{{ beernary_influxdb_loglevel }}"

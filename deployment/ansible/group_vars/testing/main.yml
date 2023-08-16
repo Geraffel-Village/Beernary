@@ -19,3 +19,12 @@ beernary_counter_config_draft_time_warning: 5
 beernary_database_root_password: "changeme"
 beernary_database_password: "changeme"
 os_configuration_apt_upgrade: false
+
+beernary_influxdb_username: "beernary"
+beernary_influxdb_password: "d6fb9d6da093d2419c61ae1c37783822"
+beernary_influxdb_token: "66a1fbd29636421f38c182a058c2689e"
+beernary_influxdb_org: "beernary"
+beernary_influxdb_bucket: "test"
+beernary_influxdb_loglevel: "info"
+beernary_influxdb_enable_http_log: "true"
+beernary_influxdb_http_bind_address: "127.0.0.1:8086"

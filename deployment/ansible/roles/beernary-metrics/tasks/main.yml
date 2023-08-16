@@ -1,0 +1,53 @@
+# code: language=ansible
+---
+
+- name: Add influxdata gpg key
+  ansible.builtin.apt_key:
+    url: https://repos.influxdata.com/influxdata-archive_compat.key
+    state: present
+
+- name: Add influxdata repo
+  ansible.builtin.apt_repository:
+    repo: deb https://repos.influxdata.com/debian stable main
+    state: present
+    filename: influxdb
+  
+- name: Install influxdb
+  ansible.builtin.package:
+    name: influxdb2
+    state: present
+  notify: restart influxdb
+
+- name: Copy influxdb config file influxdb.conf
+  ansible.builtin.template:
+    src: templates/influxdb/influxdb.conf.j2
+    dest: /etc/influxdb/influxdb.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart influxdb
+
+- name: Start influxdb for bootstrapping
+  ansible.builtin.service:
+    name: influxdb
+    state: started
+
+- name: Bootstrap influxdb
+  ansible.builtin.command:
+    argv:
+    - '/usr/bin/influx'
+    - 'setup'
+    - '--username'
+    - '{{ beernary_influxdb_username }}'
+    - '--password'
+    - '{{ beernary_influxdb_password }}'
+    - '--token'
+    - '{{ beernary_influxdb_token }}'
+    - '--org'
+    - '{{ beernary_influxdb_org }}'
+    - '--bucket'
+    - '{{ beernary_influxdb_bucket }}'
+    - '--force'
+  tags: update_database
+  when: "'bootstrap_influxdb' in ansible_run_tags"
+  ignore_errors: true
