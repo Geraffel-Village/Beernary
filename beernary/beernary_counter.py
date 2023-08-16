@@ -70,10 +70,11 @@ if __name__ == '__main__':
         mysql_password              = config.get("mysql",            "password")
         mysql_database              = config.get("mysql",            "database")
 
-        influxdb_url                = config.get("influxdb",         "url")
-        influxdb_org                = config.get("influxdb",         "org")
-        influxdb_token              = config.get("influxdb",         "token")
-        influxdb_bucket             = config.get("influxdb",         "bucket")
+        influxdb_host                = config.get("influxdb",         "host")
+        influxdb_port                = config.get("influxdb",         "port")
+        influxdb_username            = config.get("influxdb",         "username")
+        influxdb_password            = config.get("influxdb",         "password")
+        influxdb_database            = config.get("influxdb",         "database")
 
         signal_light_device         = config.get("serial_devices",   "signal_light")
 
@@ -155,7 +156,7 @@ if __name__ == '__main__':
 
         # InfluxDB initialization
         try:
-            metricsClient = modules.metrics.BeernaryInfluxDBClient(influxdb_url, influxdb_token, influxdb_org, influxdb_bucket)
+            metricsClient = modules.metrics.BeernaryInfluxDBClient(influxdb_host, influxdb_port, influxdb_username, influxdb_password, influxdb_database)
 
         except Exception as exception:
             logger.critical(f"Could not connect to InfluxDB {exception}")
@@ -163,7 +164,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
         else:
-            logger.info(f"Successfully started InfluxDB connection to server: {influxdb_url}")
+            logger.info(f"Successfully started InfluxDB connection to server: {influxdb_host}")
 
         # Event initialization
         try:
@@ -299,7 +300,7 @@ if __name__ == '__main__':
                     try:
                         database.store_draft(current_user_id, current_user_pulses)
                         database.set_keg_pulses(current_keg_id, current_keg_pulses)
-                        metricsClient.push_draft(current_user_tap, current_user_id, current_user_pulses)
+                        metricsClient.push_draft(current_user_tap, current_user_id, current_user_name, current_user_pulses)
                     except modules.database.BeernaryTransactionLogicError as exception:
                         logger.critical(f"Could not store draft: {exception}")
                         sys.exit(1)

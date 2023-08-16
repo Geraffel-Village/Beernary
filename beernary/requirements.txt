@@ -4,4 +4,4 @@ pySerial
 ConfigParser
 loguru
 PyMySQL
-influxdb-client
+influxdb

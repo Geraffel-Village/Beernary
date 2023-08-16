@@ -1,5 +1,3 @@
-bind-address = "{{ beernary_influxdb_bind_address }}"
-
 [meta]
   dir = "/var/lib/influxdb/meta"
 
@@ -13,7 +11,7 @@ bind-address = "{{ beernary_influxdb_bind_address }}"
   #compact-throughput-burst = "5m"
 
 [http]
-  bind-address = "{{ beernary_influxdb_http_bind_address }}"
+  bind-address = "{{ beernary_influxdb_http_host }}:{{ beernary_influxdb_http_port }}"
   log-enabled = {{ beernary_influxdb_enable_http_log }}
 
 [logging]
