@@ -87,6 +87,11 @@
   command: "/usr/sbin/grafana-cli admin reset-admin-password {{ beernary_grafana_admin_password }}"
   when: grafana_install.changed|bool
  
+- name: Start grafana-server for bootstrapping
+  ansible.builtin.systemd:
+    name: grafana-server
+    started: true
+
 - name: Create grafana datasource for influxdb
   community.grafana.grafana_datasource:
     name: "datasource-influxdb"
