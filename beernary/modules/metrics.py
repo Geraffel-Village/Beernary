@@ -13,6 +13,12 @@ class BeernaryInfluxDBClient():
         self.client = InfluxDBClient(host=influx_host, port=influx_port, username=influx_user, password=influx_password, database=influx_database)
 
     def push_draft(self, tap, user, nick, pulses):
-        influx_line = "draft,user="+str(user)+",nick="+str(nick)+",tap="+str(tap)+" pulses="+str(pulses)
+        """Pushes a draft metric to the influxdb backend."""
+        sanitized_nick = str(nick).translate(str.maketrans({",":  r"\,",
+                                                            "=":  r"\=",
+                                                            " ":  r"\ ",
+                                                            "\\": r"\\"
+                                                            }))
+        influx_line = "draft,user="+str(user)+",nick="+sanitized_nick+",tap="+str(tap)+" pulses="+str(pulses)
         logger.debug(f"Writing influxdb line: {influx_line}")
         self.client.write_points(points=influx_line, protocol="line")
