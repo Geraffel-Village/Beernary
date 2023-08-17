@@ -25,3 +25,6 @@ beernary_counter_config_influxdb_port: "{{ beernary_influxdb_http_port }}"
 beernary_counter_config_influxdb_username: "{{ beernary_influxdb_username }}"
 beernary_counter_config_influxdb_password: "{{ beernary_influxdb_password }}"
 beernary_counter_config_influxdb_database: "{{ beernary_influxdb_database }}"
+beernary_counter_config_identiy_webhook_enabled: true
+beernary_counter_config_identiy_webhook_port: 5000
+beernary_counter_config_identiy_webhook_token: "abc"

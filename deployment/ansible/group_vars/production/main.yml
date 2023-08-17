@@ -15,6 +15,7 @@ beernary_counter_config_gpio_valve_2: 12
 beernary_counter_config_gpio_valve_2_enabled: true
 beernary_counter_config_draft_time_unlock: 20
 beernary_counter_config_draft_time_warning: 15
+beernary_counter_config_identiy_webhook_token: "abc"
 beernary_database_root_password: "chooj0eT"
 beernary_database_password: "Eiraiva0"
 os_configuration_apt_upgrade: false

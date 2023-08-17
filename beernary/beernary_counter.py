@@ -64,31 +64,35 @@ if __name__ == '__main__':
         config                 = configparser.ConfigParser(allow_no_value=True)
         config.read(CONFIG_FILE_PATH)
 
-        log_level                   = config.get("system",           "log_level")
+        log_level                   = config.get("system",                  "log_level")
+
+        mysql_host                  = config.get("mysql",                   "hostname")
+        mysql_user                  = config.get("mysql",                   "username")
+        mysql_password              = config.get("mysql",                   "password")
+        mysql_database              = config.get("mysql",                   "database")
         mock_devices_enabled        = bool(config.get("system",      "mock_devices_enabled"))
 
-        mysql_host                  = config.get("mysql",            "hostname")
-        mysql_user                  = config.get("mysql",            "username")
-        mysql_password              = config.get("mysql",            "password")
-        mysql_database              = config.get("mysql",            "database")
+        influxdb_host                = config.get("influxdb",               "host")
+        influxdb_port                = config.get("influxdb",               "port")
+        influxdb_username            = config.get("influxdb",               "username")
+        influxdb_password            = config.get("influxdb",               "password")
+        influxdb_database            = config.get("influxdb",               "database")
 
-        influxdb_host                = config.get("influxdb",         "host")
-        influxdb_port                = config.get("influxdb",         "port")
-        influxdb_username            = config.get("influxdb",         "username")
-        influxdb_password            = config.get("influxdb",         "password")
-        influxdb_database            = config.get("influxdb",         "database")
+        signal_light_device         = config.get("serial_devices",          "signal_light")
 
-        signal_light_device         = config.get("serial_devices",   "signal_light")
+        rfid_serial_device          = config.get("serial_devices",          "rfid_reader")
+        gpio_pin_flowsensor         = int(config.get("gpio_pins",           "flowsensor"))
+        gpio_pin_valve              = int(config.get("gpio_pins",           "valve"))
 
-        rfid_serial_device          = config.get("serial_devices",   "rfid_reader")
-        gpio_pin_flowsensor         = int(config.get("gpio_pins",    "flowsensor"))
-        gpio_pin_valve              = int(config.get("gpio_pins",    "valve"))
+        gpio_pin_valve_2_enabled    = bool(config.get("gpio_pins",          "valve_2_enabled"))
+        gpio_pin_valve_2            = int(config.get("gpio_pins",           "valve_2"))
 
-        gpio_pin_valve_2_enabled    = bool(config.get("gpio_pins",   "valve_2_enabled"))
-        gpio_pin_valve_2            = int(config.get("gpio_pins",    "valve_2"))
+        draft_time_unlock           = int(config.get("draft",               "time_unlock"))
+        draft_time_warning          = int(config.get("draft",               "time_warning"))
 
-        draft_time_unlock            = int(config.get("draft",    "time_unlock"))
-        draft_time_warning           = int(config.get("draft",    "time_warning"))
+        webhook_enabled             = bool(config.get("identity_webhook",    "enabled"))
+        webhook_port                = int(config.get("identity_webhook",     "port"))
+        webhook_token               = int(config.get("identity_webhook",     "token"))
 
         #  Local variables
         current_user_id         = ""
@@ -105,6 +109,10 @@ if __name__ == '__main__':
         logger.remove(0)                        # remote default logger
         logger.add(sys.stdout, level=log_level, colorize=True)     # add handler with custom log level
         logger.add("./log/beernary-counter.log", level=log_level, colorize=True)     # add handler with custom log level
+
+        if webhook_enabled:
+            logger.info("Try to start webhook")
+            webhook_reader      = modules.reader.HTTPReader(webhook_port, webhook_token)
 
         # Initalize LCD display
         global display
@@ -245,6 +253,9 @@ if __name__ == '__main__':
             display.send_message("                    ",      2,"ljust")
             display.send_message("   Please scan tag  ",3,"ljust")
             display.send_message("                    ",4,"ljust")
+
+            current_user_id = webhook_reader.read_rfid() # blocking/waiting but stateful/fast (!)
+            logger.info(f"Received RFID tag: {current_user_id}")
 
             rfid_reader.flush_queue()
             current_user_id = rfid_reader.read_rfid() # blocking/waiting
