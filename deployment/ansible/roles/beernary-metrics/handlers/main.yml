@@ -1,0 +1,7 @@
+# code: language=ansible
+---
+
+- name: restart influxdb
+  service:
+    name: influxdb
+    state: restarted

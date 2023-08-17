@@ -4,3 +4,4 @@ pySerial
 ConfigParser
 loguru
 PyMySQL
+influxdb

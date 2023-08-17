@@ -21,6 +21,7 @@ except: # pylint: disable=bare-except
 
 # custom beernary
 import modules.database
+import modules.metrics
 import modules.display
 import modules.flowsensor
 import modules.reader
@@ -68,6 +69,12 @@ if __name__ == '__main__':
         mysql_user                  = config.get("mysql",            "username")
         mysql_password              = config.get("mysql",            "password")
         mysql_database              = config.get("mysql",            "database")
+
+        influxdb_host                = config.get("influxdb",         "host")
+        influxdb_port                = config.get("influxdb",         "port")
+        influxdb_username            = config.get("influxdb",         "username")
+        influxdb_password            = config.get("influxdb",         "password")
+        influxdb_database            = config.get("influxdb",         "database")
 
         signal_light_device         = config.get("serial_devices",   "signal_light")
 
@@ -146,6 +153,18 @@ if __name__ == '__main__':
 
         else:
             logger.info(f"Successfully opened database: {mysql_database} at {mysql_host}")
+
+        # InfluxDB initialization
+        try:
+            metricsClient = modules.metrics.BeernaryInfluxDBClient(influxdb_host, influxdb_port, influxdb_username, influxdb_password, influxdb_database)
+
+        except Exception as exception:
+            logger.critical(f"Could not connect to InfluxDB {exception}")
+            display.send_message("[E] InfluxDB failed",2,"ljust")
+            sys.exit(1)
+
+        else:
+            logger.info(f"Successfully started InfluxDB connection to server: {influxdb_host}")
 
         # Event initialization
         try:
@@ -281,6 +300,7 @@ if __name__ == '__main__':
                     try:
                         database.store_draft(current_user_id, current_user_pulses)
                         database.set_keg_pulses(current_keg_id, current_keg_pulses)
+                        metricsClient.push_draft(current_user_tap, current_user_id, current_user_name, current_user_pulses)
                     except modules.database.BeernaryTransactionLogicError as exception:
                         logger.critical(f"Could not store draft: {exception}")
                         sys.exit(1)
