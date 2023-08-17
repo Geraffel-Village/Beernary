@@ -4,12 +4,30 @@
 Controls the beenary's integrated flowsensor. Currently only pulse-based.
 """
 
+from abc import ABC, abstractmethod
+
 try:
     import RPi.GPIO as GPIO
 except: # pylint: disable=bare-except
     import Mock.GPIO as GPIO
 
-class PulseFlowsensor:
+class Flowsensor(ABC):
+    """Abstract base class to describe functionality of the beer flow sensors."""
+
+    @abstractmethod
+    def __init__(self, gpio_pin: int, pulses: int):
+        """Abstract constructor to initialize the beer flow sensors."""
+
+    @abstractmethod
+    def add_pulse(self, pulses: int):
+        """
+        Abstract method to add a pulse to the flow counter.
+
+        Parameters:
+        pulses - amount of pulses to add to the current value
+        """
+
+class PulseFlowsensor(Flowsensor):
     """Represents a flowsensor based on GPIO pulses."""
 
     pulses: int     # attribute to reflect counted pulses
@@ -41,4 +59,16 @@ class PulseFlowsensor:
         Parameters:
         pulses  - (Optional) amount of pulses to add to counter
         """
+        self.pulses += pulses
+
+class PulseFlowsensorMock(Flowsensor):
+    """A simple mock for testing without physical sensors."""
+
+    pulses: int     # attribute to reflect counted pulses
+    gpio_pin: int   # attribute to reflect the used GPIO pin
+
+    def __init__(self, gpio_pin, pulses=0):
+        self.pulses = pulses
+
+    def add_pulse(self, pulses=1):
         self.pulses += pulses
