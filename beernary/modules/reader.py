@@ -208,7 +208,7 @@ class HTTPReader(IdentityReader):
     reader_token      = str
 
     @staticmethod
-    def __init__(self, webhook_port, reader_token):
+    def __init__(webhook_port, reader_token):
         """Will setup the HTTP webhook socket."""
 
         logger.info(f"Trying to start asynchronous webhook")

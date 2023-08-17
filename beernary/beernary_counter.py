@@ -70,7 +70,7 @@ if __name__ == '__main__':
         mysql_user                  = config.get("mysql",                   "username")
         mysql_password              = config.get("mysql",                   "password")
         mysql_database              = config.get("mysql",                   "database")
-        mock_devices_enabled        = bool(config.get("system",      "mock_devices_enabled"))
+        mock_devices_enabled        = eval(config.get("system",      "mock_devices_enabled"))
 
         influxdb_host                = config.get("influxdb",               "host")
         influxdb_port                = config.get("influxdb",               "port")
@@ -84,15 +84,15 @@ if __name__ == '__main__':
         gpio_pin_flowsensor         = int(config.get("gpio_pins",           "flowsensor"))
         gpio_pin_valve              = int(config.get("gpio_pins",           "valve"))
 
-        gpio_pin_valve_2_enabled    = bool(config.get("gpio_pins",          "valve_2_enabled"))
+        gpio_pin_valve_2_enabled    = eval(config.get("gpio_pins",          "valve_2_enabled"))
         gpio_pin_valve_2            = int(config.get("gpio_pins",           "valve_2"))
 
         draft_time_unlock           = int(config.get("draft",               "time_unlock"))
         draft_time_warning          = int(config.get("draft",               "time_warning"))
 
-        webhook_enabled             = bool(config.get("identity_webhook",    "enabled"))
+        webhook_enabled             = eval(config.get("identity_webhook",    "enabled"))
         webhook_port                = int(config.get("identity_webhook",     "port"))
-        webhook_token               = int(config.get("identity_webhook",     "token"))
+        webhook_token               = config.get("identity_webhook",     "token")
 
         #  Local variables
         current_user_id         = ""
