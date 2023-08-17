@@ -28,3 +28,5 @@ beernary_influxdb_loglevel: "info"
 beernary_influxdb_enable_http_log: "true"
 beernary_influxdb_http_host: 127.0.0.1
 beernary_influxdb_http_port: 8086
+
+beernary_grafana_admin_password: "d6fb9d6da093d2419c61ae1c37783822"
