@@ -73,7 +73,7 @@ if __name__ == '__main__':
         mysql_database              = config.get("mysql",                   "database")
         mock_devices_enabled        = eval(config.get("system",             "mock_devices_enabled"))
 
-         metrics_enabled            = eval(config.get("metrics",             "enabled"))
+        metrics_enabled            = eval(config.get("metrics",             "enabled"))
 
         influxdb_host                = config.get("influxdb",               "host")
         influxdb_port                = config.get("influxdb",               "port")
