@@ -1,6 +1,8 @@
 # code: language=ansible
 ---
 
+### InfluxDB
+
 - name: Add influxdata gpg key
   ansible.builtin.apt_key:
     url: https://repos.influxdata.com/influxdata-archive_compat.key
@@ -11,12 +13,8 @@
     repo: deb https://repos.influxdata.com/debian stable main
     state: present
     filename: influxdb
+    update_cache: true
   register: influx_repo_setup
-
-- name: Update apt database
-  apt:
-      update_cache: yes
-  when: influx_repo_setup.changed
 
 - name: Install influxdb
   ansible.builtin.package:
@@ -45,8 +43,58 @@
 
 - name: Create database using custom credentials
   community.general.influxdb_database:
-      hostname: "{{ beernary_influxdb_http_host }}"
-      port:     "{{ beernary_influxdb_http_port }}"
-      username: "{{ beernary_influxdb_username }}"
-      password: "{{ beernary_influxdb_password }}"
-      database_name: "{{ beernary_influxdb_database }}"
+    hostname: "{{ beernary_influxdb_http_host }}"
+    port:     "{{ beernary_influxdb_http_port }}"
+    username: "{{ beernary_influxdb_username }}"
+    password: "{{ beernary_influxdb_password }}"
+    database_name: "{{ beernary_influxdb_database }}"
+
+- name: Enable influxdb service
+  ansible.builtin.systemd:
+    name: influxdb
+    enabled: true
+    masked: no
+
+### Grafana
+
+- name: Add grafana gpg key
+  ansible.builtin.apt_key:
+    url: https://packages.grafana.com/gpg.key
+    state: present
+
+- name: Add grafana repo
+  ansible.builtin.apt_repository:
+    repo: deb https://packages.grafana.com/oss/deb stable main
+    state: present
+    filename: grafana
+    update_cache: true
+  register: grafana_repo_setup
+
+- name: Install grafana
+  ansible.builtin.package:
+    name: grafana
+    state: present
+  register: grafana_install
+  notify: restart grafana
+
+- name: Enable grafana service
+  ansible.builtin.systemd:
+    name: grafana-server
+    enabled: true
+    masked: no
+
+- name: Set initial grafana admin password
+  command: "/usr/sbin/grafana-cli admin reset-admin-password {{ beernary_grafana_admin_password }}"
+  when: grafana_install.changed|bool
+ 
+- name: Create grafana datasource for influxdb
+  community.grafana.grafana_datasource:
+    name: "datasource-influxdb"
+    grafana_url: "http://127.0.0.1:3000"
+    grafana_user: "admin"
+    grafana_password: "{{ beernary_grafana_admin_password }}"
+    ds_type: "influxdb"
+    ds_url: "http://127.0.0.1:8086"
+    database: "{{ beernary_influxdb_database }}"
+    user: "{{ beernary_influxdb_username }}"
+    password: "{{ beernary_influxdb_password }}"

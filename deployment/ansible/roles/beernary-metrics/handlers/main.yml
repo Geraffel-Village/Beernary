@@ -2,6 +2,11 @@
 ---
 
 - name: restart influxdb
-  service:
+  ansible.builtin.service:
     name: influxdb
     state: restarted
+
+- name: restart grafana
+  ansible.builtin.service:
+    name: grafana
+    state: grafana-server

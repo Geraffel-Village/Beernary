@@ -11,3 +11,6 @@ beernary_influxdb_http_port: 8086
 beernary_influxdb_username: "beernary"
 beernary_influxdb_password: "changeme"
 beernary_influxdb_database: "beernary-dev"
+
+# grafana settings
+beernary_grafana_admin_password: "changeme"
