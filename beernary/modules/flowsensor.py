@@ -27,6 +27,10 @@ class Flowsensor(ABC):
         pulses - amount of pulses to add to the current value
         """
 
+    @abstractmethod
+    def close(self):
+        """Abstract method to close the object, e.g. clean GPIO pins."""
+
 class PulseFlowsensor(Flowsensor):
     """Represents a flowsensor based on GPIO pulses."""
 
@@ -61,6 +65,9 @@ class PulseFlowsensor(Flowsensor):
         """
         self.pulses += pulses
 
+    def close(self):
+        GPIO.cleanup()
+
 class PulseFlowsensorMock(Flowsensor):
     """A simple mock for testing without physical sensors."""
 
@@ -72,3 +79,6 @@ class PulseFlowsensorMock(Flowsensor):
 
     def add_pulse(self, pulses=1):
         self.pulses += pulses
+
+    def close(self):
+        pass
