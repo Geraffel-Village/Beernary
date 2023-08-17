@@ -10,6 +10,8 @@ import urllib.parse
 import threading
 import time
 import serial
+import zlib
+import base64
 
 from loguru import logger
 
@@ -39,7 +41,6 @@ class IdentityReader(ABC):
 
         self.serial_reader = serial.Serial(self.device_path, self.baud_rate, timeout=self.TIMEOUT)
 
-
     @abstractmethod
     def read_rfid(self):
         """
@@ -54,6 +55,10 @@ class IdentityReader(ABC):
         Abstract method to flush inputs of a reader.
         Triggered to free serial queue while draft is in progress.
         """
+
+    @abstractmethod
+    def close(self):
+        """Abstract method to close the object, e.g. clean GPIO pins."""
 
 class UsbRfidReader(IdentityReader):
     """Represents an USB-based RFID reader with high-level tag read implementation"""
@@ -89,6 +94,9 @@ class UsbRfidReader(IdentityReader):
     def flush_queue(self): # TODO: nest class
         """Flushes inputs of the serial reader."""
         self.serial_reader.reset_input_buffer()
+
+    def close(self):
+        self.serial_reader.close()
 
 class RawRfidReader(IdentityReader):
     """Represents a serial-based RFID reader with full low-level tag read implementation"""
@@ -181,20 +189,32 @@ class RawRfidReader(IdentityReader):
         """Flushes inputs of the serial reader."""
         self.serial_reader.reset_input_buffer()
 
+    def close(self):
+        self.serial_reader.close()
+
 class HTTPReaderRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
 
-        url_object = urllib.parse.urlparse(self.path)
-        parameters = urllib.parse.parse_qs(url_object.query)
+        logger.debug(f"Webhook received from: {self.client_address[0]}")
 
-        received_identity_id    = parameters["id"]
-        received_identity_name  = parameters["name"]
-        received_reader_token   = parameters["token"]
+        if "?" not in self.path:
+            logger.warning("Received invalid webhook: missing parameters")
+            return
 
-        HTTPReader.handle_webhook(received_identity_id,
-                                  received_identity_name,
-                                  received_reader_token)
+        parameters = urllib.parse.parse_qs(self.path)
+
+        logger.debug(f"Path from webhook received: {self.path}")
+        logger.debug(f"Parameters from webhook received: {parameters}")
+
+        received_identity_id    = parameters["id"][0]
+        received_identity_id    = received_identity_id.split("?")[0]
+        received_reader_token   = parameters["token"][0]
+
+        logger.debug(f"Received valid webhook identity: {received_identity_id}")
+
+        HTTPReader.handle_webhook(received_identity_id, received_reader_token)
+
 
 class HTTPReader(IdentityReader):
     """Identiy reader via HTTP Socket / Webhook."""
@@ -204,7 +224,6 @@ class HTTPReader(IdentityReader):
 
     identity_received = bool
     identity_id       = str
-    identity_name     = str
     reader_token      = str
 
     @staticmethod
@@ -216,7 +235,7 @@ class HTTPReader(IdentityReader):
         HTTPReader.reader_token       = reader_token
         HTTPReader.identity_received  = False
 
-        HTTPReader.server_address     = server_address = ('', webhook_port)
+        HTTPReader.server_address     = server_address = ('0.0.0.0', webhook_port)
         HTTPReader.http_reader        = HTTPServer(server_address, HTTPReaderRequestHandler)
 
         HTTPReader.http_thread        = threading.Thread(target=HTTPReader.http_reader.serve_forever)
@@ -225,22 +244,20 @@ class HTTPReader(IdentityReader):
         logger.info(f"Asynchronous webhook started on port {webhook_port}")
 
     @staticmethod
-    def handle_webhook(received_identity_id, received_identity_name, received_reader_token):
+    def handle_webhook(received_identity_id, received_reader_token):
         """Internal method to execute code when webhook is triggered. (async)"""
 
         if received_reader_token != HTTPReader.reader_token:
             logger.warning(f"Received webhook with invalid token: {received_reader_token}")
             return False
 
-        HTTPReader.received_identity_id     = received_identity_id
-        HTTPReader.received_identity_name   = received_identity_name
+        HTTPReader.received_identity_id     = zlib.adler32(base64.b64decode(received_identity_id))
         HTTPReader.received_reader_token    = received_reader_token
 
         logger.debug(f"Received identity_id: {HTTPReader.received_identity_id}")
-        logger.debug(f"Received identity_name: {HTTPReader.received_identity_name}")
         logger.debug(f"Received reader_token: {HTTPReader.received_reader_token}")
 
-        logger.info("Received webhook with identity, setting flag")
+        logger.debug("Received webhook with identity, setting flag")
         HTTPReader.identity_received = True
 
         return True
@@ -250,10 +267,21 @@ class HTTPReader(IdentityReader):
         if HTTPReader.identity_received:
             HTTPReader.identity_received = False
             return HTTPReader.identity_name
+        else:
+            return None
 
     @staticmethod
     def flush_queue():
         HTTPReader.identity_received = False
+
+
+    @staticmethod
+    def close():
+        #HTTPReader.stop_event =
+        #HTTPReader.http_thread
+        HTTPReader.http_reader.shutdown()
+        HTTPReader.http_thread.join()
+
 
 class MockRfidReader(IdentityReader):
     """A simple mock for testing without physical rfid sensor."""
@@ -273,3 +301,6 @@ class MockRfidReader(IdentityReader):
 
     def flush_queue(self):
         return
+
+    def close(self):
+        pass

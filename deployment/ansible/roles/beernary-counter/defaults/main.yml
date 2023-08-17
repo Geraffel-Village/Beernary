@@ -20,6 +20,7 @@ beernary_counter_config_log_level: "DEBUG"
 beernary_counter_config_mock_devices_enabled: false
 beernary_counter_config_draft_time_unlock: 30
 beernary_counter_config_draft_time_warning: 10
+beernary_counter_config_metrics_enabled: true
 beernary_counter_config_influxdb_host: "{{ beernary_influxdb_http_host }}"
 beernary_counter_config_influxdb_port: "{{ beernary_influxdb_http_port }}"
 beernary_counter_config_influxdb_username: "{{ beernary_influxdb_username }}"

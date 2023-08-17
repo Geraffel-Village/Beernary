@@ -42,6 +42,9 @@ class Display(ABC):
             "rjust"    - Right justified  (ex. 3)
         """
 
+    @abstractmethod
+    def close(self):
+        """Abstract method to close the object, e.g. clean GPIO pins."""
 
 class LCDDisplay(Display):
     """Represents a the currently installed LCD display (propably HD44780)."""
@@ -187,3 +190,6 @@ class LCDDisplay(Display):
     def clear(self):
         """Clears the display."""
         self.send_bit(0x01, self.LCD_CMD)
+
+    def close(self):
+        GPIO.cleanup()

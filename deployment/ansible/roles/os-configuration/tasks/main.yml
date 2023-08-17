@@ -36,6 +36,7 @@
     enabled: false
     state: "stopped"
   loop: "{{ os_configuration_unrequired_services }}"
+  ignore_errors: true
 
 - name: "Deploy hardened OpenSSH configuration"
   ansible.builtin.template:

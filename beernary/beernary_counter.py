@@ -31,32 +31,33 @@ import modules.light
 
 CONFIG_FILE_PATH    = "/etc/beernary/config.ini"
 
-def shutdown(exception=None):
-    """Exit function called by SIGTERM for clean rundown"""
+def graceful_shutdown(signalnumber, stackframe):
 
-    try:
-        signal_light.send_command(signal_light.GREEN_OFF)
-        signal_light.send_command(signal_light.RED_OFF)
-        signal_light.send_command(signal_light.YELLOW_OFF)
-        signal_light.send_command(signal_light.RED_BLINK)
-    except Exception:
-        pass # power outage of signal light
+    signal_light.send_command(signal_light.GREEN_OFF)
+    signal_light.send_command(signal_light.RED_OFF)
+    signal_light.send_command(signal_light.YELLOW_OFF)
+    signal_light.send_command(signal_light.RED_BLINK)
 
-    display.clear()
-    valve.unlocked = False
-    GPIO.cleanup()
+    if webhook_enabled:
+        webhook_reader.close()
 
-    try:
-        logger.critical(f"System shutdown initiated via exception: {exception}")
-        raise(exception)
+    rfid_reader.close()
+    display.close()
+    flowsensor.close()
+    valve.close()
 
-    except NameError:
-        logger.critical("System shutdown initiated via SIGINT")
-        sys.exit(0)
+    logger.critical("System shutdown initiated via SIGINT")
+    sys.exit(0)
+
+def panic_shutdown(exception):
+    """Exit function called by exception handler for clean rundown"""
+
+    logger.critical(f"System shutdown initiated via exception: {exception}")
+    raise(exception)
 
 if __name__ == '__main__':
 
-    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGTERM, graceful_shutdown)
 
     try:
 
@@ -70,7 +71,9 @@ if __name__ == '__main__':
         mysql_user                  = config.get("mysql",                   "username")
         mysql_password              = config.get("mysql",                   "password")
         mysql_database              = config.get("mysql",                   "database")
-        mock_devices_enabled        = eval(config.get("system",      "mock_devices_enabled"))
+        mock_devices_enabled        = eval(config.get("system",             "mock_devices_enabled"))
+
+         metrics_enabled            = eval(config.get("metrics",             "enabled"))
 
         influxdb_host                = config.get("influxdb",               "host")
         influxdb_port                = config.get("influxdb",               "port")
@@ -255,11 +258,13 @@ if __name__ == '__main__':
             display.send_message("                    ",4,"ljust")
 
             current_user_id = webhook_reader.read_rfid() # blocking/waiting but stateful/fast (!)
-            logger.info(f"Received RFID tag: {current_user_id}")
+            if current_user_id is not None:
+                logger.info(f"Webhook identity received: {current_user_id}")
 
-            rfid_reader.flush_queue()
-            current_user_id = rfid_reader.read_rfid() # blocking/waiting
-            logger.info(f"Received RFID tag: {current_user_id}")
+            elif current_user_id is None:
+                rfid_reader.flush_queue()
+                current_user_id = rfid_reader.read_rfid() # blocking/waiting
+                logger.info(f"Received RFID tag: {current_user_id}")
 
             # Sanity check from reader
             if current_user_id is not None:
@@ -326,7 +331,10 @@ if __name__ == '__main__':
                     try:
                         database.store_draft(current_user_id, current_user_pulses)
                         database.set_keg_pulses(current_keg_id, current_keg_pulses)
-                        metricsClient.push_draft(current_user_tap, current_user_id, current_user_name, current_user_pulses)
+
+                        if metrics_enabled:
+                            metricsClient.push_draft(current_user_tap, current_user_id, current_user_name, current_user_pulses)
+
                     except modules.database.BeernaryTransactionLogicError as exception:
                         logger.critical(f"Could not store draft: {exception}")
                         sys.exit(1)
@@ -357,4 +365,4 @@ if __name__ == '__main__':
             rfid_reader.flush_queue()
 
     except Exception as exception:
-        shutdown(exception)
+        panic_shutdown(exception)

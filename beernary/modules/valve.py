@@ -37,3 +37,8 @@ class Valve:
     @unlocked.setter
     def unlocked(self, value):
         GPIO.output(self.gpio_pin, value)
+
+    def close(self):
+        """Method to close the valve connection."""
+        self.unlocked = False
+        GPIO.cleanup()

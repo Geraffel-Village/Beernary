@@ -1,5 +1,8 @@
 # code: language=ansible
 ---
+
+ansible_become: true
+
 beernary_database_sql_files:
   - "beernary-schema.sql"
   - "beernary-data.sql"
