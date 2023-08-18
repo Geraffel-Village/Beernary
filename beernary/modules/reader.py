@@ -202,13 +202,12 @@ class HTTPReaderRequestHandler(BaseHTTPRequestHandler):
             logger.warning("Received invalid webhook: missing parameters")
             return
 
-        parameters = urllib.parse.parse_qs(self.path)
+        parameters = urllib.parse.parse_qs(self.path[2:])
 
         logger.debug(f"Path from webhook received: {self.path}")
         logger.debug(f"Parameters from webhook received: {parameters}")
 
         received_identity_id    = parameters["id"][0]
-        received_identity_id    = received_identity_id.split("?")[0]
         received_reader_token   = parameters["token"][0]
 
         logger.debug(f"Received valid webhook identity: {received_identity_id}")
