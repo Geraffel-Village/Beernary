@@ -265,7 +265,7 @@ class HTTPReader(IdentityReader):
     def read_rfid():
         if HTTPReader.identity_received:
             HTTPReader.identity_received = False
-            return HTTPReader.identity_name
+            return HTTPReader.received_identity_id
         else:
             return None
 
