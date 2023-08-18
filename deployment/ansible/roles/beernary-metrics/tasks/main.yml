@@ -77,6 +77,15 @@
   register: grafana_install
   notify: restart grafana
 
+- name: Copy grafana config
+  ansible.builtin.template:
+    src: templates/grafana/grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: root
+    group: grafana
+    mode: 0640
+  notify: restart grafana
+
 - name: Enable grafana service
   ansible.builtin.systemd:
     name: grafana-server
