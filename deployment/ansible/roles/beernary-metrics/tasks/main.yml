@@ -93,6 +93,13 @@
   ansible.builtin.systemd:
     name: grafana-server
     state: started
+  register: grafana_service_start
+
+- name: Wait a few seconds for Grafana to come up
+  ansible.builtin.wait_for:
+    port: 3000
+    delay: 10
+  when: grafana_service_start.changed
 
 - name: Create grafana datasource for influxdb
   community.grafana.grafana_datasource:
