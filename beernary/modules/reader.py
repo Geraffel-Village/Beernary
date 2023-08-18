@@ -40,6 +40,7 @@ class IdentityReader(ABC):
         self.baud_rate = baud_rate
 
         self.serial_reader = serial.Serial(self.device_path, self.baud_rate, timeout=self.TIMEOUT)
+        print(str(self.serial_reader.timeout))
 
     @abstractmethod
     def read_rfid(self):
@@ -251,7 +252,7 @@ class HTTPReader(IdentityReader):
             logger.warning(f"Received webhook with invalid token: {received_reader_token}")
             return False
 
-        HTTPReader.received_identity_id     = zlib.adler32(base64.b64decode(received_identity_id))
+        HTTPReader.received_identity_id     = received_identity_id[-10:]
         HTTPReader.received_reader_token    = received_reader_token
 
         logger.debug(f"Received identity_id: {HTTPReader.received_identity_id}")
