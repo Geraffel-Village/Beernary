@@ -6,6 +6,7 @@ Hard- & software stack for authentication, authorization and accounting of your 
 
 ![Preview Overall](documentation/deployment_prev_total.jpg)
 
+![Grafana Dashboard](documentation/grafana_dashboard_total.png)
 
 # Additional Documentation
 https://wiki.geraffel-village.de/doku.php?id=geraffel:b33rn4ry
