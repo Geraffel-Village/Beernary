@@ -77,6 +77,15 @@
   register: grafana_install
   notify: restart grafana
 
+- name: Copy grafana config
+  ansible.builtin.template:
+    src: templates/grafana/grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: root
+    group: grafana
+    mode: 0640
+  notify: restart grafana
+
 - name: Enable grafana service
   ansible.builtin.systemd:
     name: grafana-server
@@ -102,6 +111,32 @@
     grafana_password: "{{ beernary_grafana_admin_password }}"
     ds_type: "influxdb"
     ds_url: "http://127.0.0.1:8086"
+    uid: "f162eb3b-1ca8-4e79-a5f0-e31d6a4dfd43"
     database: "{{ beernary_influxdb_database }}"
     user: "{{ beernary_influxdb_username }}"
     password: "{{ beernary_influxdb_password }}"
+
+- name: Create target directory for grafana dashboards
+  ansible.builtin.file:
+    path: /opt/beernary-dashboards
+    owner: root
+    group: root
+    mode: 0770
+    state: directory
+
+- name: Copy Beernary public grafana dashboard
+  ansible.builtin.copy:
+    src: grafana/dashboards/beernary_public_dashboard.json
+    dest: /opt/beernary-dashboards/
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Import Beernary public grafana dashboard
+  community.grafana.grafana_dashboard:
+    grafana_url: "http://127.0.0.1:3000"
+    grafana_user: "admin"
+    grafana_password: "{{ beernary_grafana_admin_password }}"
+    path: /opt/beernary-dashboards/beernary_public_dashboard.json
+    commit_message: Updated by ansible
+    overwrite: yes
