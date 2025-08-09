@@ -1,3 +1,7 @@
+# Python
 **/.venv/**
 *.pyc
+
+# Ansible
 ^config.ini
+**/*.priv
