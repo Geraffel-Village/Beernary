@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 import time
 import threading
 
+from loguru import logger
+
 try:
     import RPi.GPIO as GPIO
 except:  # pylint: disable=bare-except
@@ -63,9 +65,11 @@ class LCDDisplay(Display):
     LCD_CHR     = True
     LCD_CMD     = False
     LCD_LINE_1  = 0x80      # LCD RAM address for the 1st line
-    LCD_LINE_2  = 0xC0      # LCD RAM address for the 2nd line
+    #LCD_LINE_2  = 0xC0      # LCD RAM address for the 2nd line
+    LCD_LINE_2 = 0x80 + 0x14
     LCD_LINE_3  = 0x94      # LCD RAM address for the 3rd line
-    LCD_LINE_4  = 0xD4      # LCD RAM address for the 4th line
+    #LCD_LINE_4  = 0xD4      # LCD RAM address for the 4th line
+    LCD_LINE_4 = 0x80 + 0x14 + 0x40
     E_PULSE     = 0.0005
     E_DELAY     = 0.0005
     LCD_STDOUT  = False
@@ -193,6 +197,7 @@ class LCDDisplay(Display):
 
             except Exception:
                 # Fallback: Re-Init und Wiederholung
+                logger.warning("Error sending message to LCD - reinitializing and retrying")
                 self.reinit()
 
                 self._cmd(0x28)
