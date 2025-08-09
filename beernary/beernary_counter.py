@@ -9,6 +9,8 @@ import sys
 import configparser
 import signal
 import random
+import threading
+import queue
 
 # pip packages
 import time
@@ -29,37 +31,42 @@ import modules.reader
 import modules.valve
 import modules.light
 
+auth_queue = queue.Queue()
+tap_free = threading.Event()
+tap_free.clear()
+
 CONFIG_FILE_PATH    = "/etc/beernary/config.ini"
 
-def graceful_shutdown(signalnumber, stackframe):
+def main():
 
-    signal_light.send_command(signal_light.GREEN_OFF)
-    signal_light.send_command(signal_light.RED_OFF)
-    signal_light.send_command(signal_light.YELLOW_OFF)
-    signal_light.send_command(signal_light.RED_BLINK)
+    def panic_shutdown(exception):
+        """Exit function called by exception handler for clean rundown"""
 
-    if webhook_enabled:
-        webhook_reader.close()
+        GPIO.cleanup()
+        if webhook_enabled:
+            webhook_reader.close()
 
-    rfid_reader.close()
-    display.close()
-    flowsensor.close()
-    valve.close()
+        logger.critical(f"System shutdown initiated via exception: {exception}")
+        raise(exception)
 
-    logger.critical("System shutdown initiated via SIGINT")
-    sys.exit(0)
 
-def panic_shutdown(exception):
-    """Exit function called by exception handler for clean rundown"""
+    def graceful_shutdown(signalnumber, stackframe):
 
-    GPIO.cleanup()
-    if webhook_enabled:
-        webhook_reader.close()
+        signal_light.send_command(signal_light.GREEN_OFF)
+        signal_light.send_command(signal_light.RED_OFF)
+        signal_light.send_command(signal_light.YELLOW_OFF)
+        signal_light.send_command(signal_light.RED_BLINK)
 
-    logger.critical(f"System shutdown initiated via exception: {exception}")
-    raise(exception)
+        if webhook_enabled:
+            webhook_reader.close()
 
-if __name__ == '__main__':
+        rfid_reader.close()
+        display.close()
+        flowsensor.close()
+        valve.close()
+
+        logger.critical("System shutdown initiated via SIGINT")
+        sys.exit(0)
 
     signal.signal(signal.SIGTERM, graceful_shutdown)
 
@@ -221,6 +228,55 @@ if __name__ == '__main__':
         else:
             logger.info(f"Successfully received active keg: {current_keg_id}")
 
+        # --- Start the threads before the main loop ---
+        def webhook_auth_task():
+                while True:
+                    current_user_id = webhook_reader.read_rfid()
+                    if not tap_free.is_set():
+                        logger.warning("Tap is currently busy, skipping webhook auth")
+                        continue
+                    if current_user_id is not None:
+                        logger.info(f"Webhook identity received: {current_user_id}")
+                        auth_queue.put({
+                            "source": "webhook",
+                            "user_id": current_user_id,
+                            "user_name": current_user_id,
+                            "user_tap": 1
+                        })
+                        logger.info("Pushed webhook auth to queue")
+                    time.sleep(1)
+
+        def rfid_auth_task():
+            while True:
+                rfid_reader.flush_queue()
+                current_user_id = rfid_reader.read_rfid()
+                if not tap_free.is_set():
+                    logger.warning("Tap is currently busy, skipping RFID auth")
+                    continue
+                if current_user_id is not None:
+                    logger.info(f"Received RFID tag: {current_user_id}")
+                    current_user_data = database.check_user(current_user_id)
+                    if current_user_data:
+                        logger.info("Pushing RFID auth to queue")
+                        auth_queue.put({
+                            "source": "rfid",
+                            "user_id": current_user_id,
+                            "user_name": current_user_data[0],
+                            "user_tap": int(current_user_data[1])
+                        })
+                        logger.info("Pushed RFID auth to queue")
+                time.sleep(0.1)
+
+        # Start auth threads
+        webhook_thread = None
+        if webhook_enabled:
+            webhook_thread = threading.Thread(target=webhook_auth_task, daemon=True)
+            webhook_thread.start()
+            
+        rfid_thread = threading.Thread(target=rfid_auth_task, daemon=True)
+        rfid_thread.start()
+
+
         logger.info("Beernary successfully initialized! Welcome home.")
 
         # Bootscreen
@@ -256,29 +312,25 @@ if __name__ == '__main__':
             signal_light.send_command(signal_light.RED_ON)
 
             display.clear()
-            display.send_message("  Beernary Counter  ",      1,"ljust")
-            display.send_message("                    ",      2,"ljust")
+            display.send_message("  Beernary Counter  ",1,"ljust")
+            display.send_message("                    ",2,"ljust")
             display.send_message("   Please scan tag  ",3,"ljust")
             display.send_message("                    ",4,"ljust")
 
-            current_user_id = webhook_reader.read_rfid() # blocking/waiting but stateful/fast (!)
-            if current_user_id is not None:
-                logger.info(f"Webhook identity received: {current_user_id}")
+            # --- Replace the main loop's auth check with this ---
+            tap_free.set()  # Tap is free, allow auth tasks to yield identities
+            logger.info("Awaiting auth from thread queue")
+            current_user = auth_queue.get()  # This will block until something is in the queue
+            tap_free.clear()  # Tap is now busy, lock out auth tasks
 
-                current_user_name   = current_user_id
-                current_user_tap    = 1
+            current_user_id = current_user["user_id"]
+            current_user_name = current_user["user_name"]
+            current_user_tap = current_user["user_tap"]
 
-            elif current_user_id is None:
-                rfid_reader.flush_queue()
-                current_user_id = rfid_reader.read_rfid() # blocking/waiting
-
-                logger.info(f"Received RFID tag: {current_user_id}")
-
-                current_user_data = database.check_user(current_user_id)
-
-                if current_user_data:
-                    current_user_name = current_user_data[0]
-                    current_user_tap = int(current_user_data[1])
+            if current_user_name is not None and current_user_tap is not None:
+                current_user_data = (current_user_name, current_user_tap)
+            else:
+                current_user_data = None
 
             display.enabled = True
 
@@ -314,6 +366,7 @@ if __name__ == '__main__':
                     display.send_message(f"Draft time left: {draft_time_unlock-i}s",   4, "ljust")
 
                     if i >= draft_time_warning:
+                        signal_light.send_command(signal_light.GREEN_OFF)
                         signal_light.send_command(signal_light.GREEN_OFF)
                         signal_light.send_command(signal_light.YELLOW_BLINK)
                     if mock_devices_enabled is True:
@@ -365,3 +418,6 @@ if __name__ == '__main__':
 
     except Exception as exception:
         panic_shutdown(exception)
+
+if __name__ == '__main__':
+    main()
