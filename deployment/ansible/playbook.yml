@@ -14,12 +14,12 @@
     - "beernary-database"
   tags: "beernary-database"
 
-- name: "Deploy beernary-metrics to selected host"
-  hosts: "beernary-counter"
-  gather_facts: false
-  roles:
-    - "beernary-metrics"
-  tags: "beernary-metrics"
+# - name: "Deploy beernary-metrics to selected host"
+#   hosts: "beernary-counter"
+#   gather_facts: false
+#   roles:
+#     - "beernary-metrics"
+#   tags: "beernary-metrics"
 
 - name: "Deploy beernary-counter to selected host"
   hosts: "beernary-counter"

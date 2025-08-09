@@ -1,6 +1,13 @@
 # code: language=ansible
 ---
 
+
+- name: "Install operating system dependencies" # noqa package-latest
+  ansible.builtin.apt:
+    name:
+      - "python3-virtualenv"
+    state: "latest"
+
 - name: "Ensure Beernary application user exists"
   ansible.builtin.user:
     name: "{{ beernary_counter_application_user }}"
@@ -16,13 +23,18 @@
   ansible.posix.synchronize:
     src: "{{ beernary_counter_source_path }}"
     dest: "{{ beernary_counter_destination_path }}"
+    perms: true
+    rsync_opts:
+      - "--exclude=.venv"
+
   notify:
     - "Restart beernary-counter"
   tags: update_app
 
 - name: "Install application Python dependencies"
   ansible.builtin.pip:
-    requirements: "{{ beernary_counter_destination_path }}/requirements.txt"
+    requirements: "{{ beernary_counter_destination_path }}requirements.txt"
+    virtualenv: "{{ beernary_counter_destination_path }}.venv"
 
 - name: "Set file permissions for application directory"
   ansible.builtin.file:

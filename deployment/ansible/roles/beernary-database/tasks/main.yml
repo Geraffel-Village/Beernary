@@ -4,20 +4,15 @@
 - name: "Install MariaDB server and client" # noqa package-latest
   ansible.builtin.apt:
     name:
-      - "mariadb-server-10.5"
-      - "mariadb-client-10.5"
+      - "mariadb-server"
+      - "mariadb-client"
       - "libmariadb-dev"
     state: "latest"
 
 - name: "Install pip for Ansible dependencies" # noqa package-latest
   ansible.builtin.apt:
     name:
-      - "python3-pip"
-    state: "latest"
-
-- name: "Install pip dependencies for Ansible" # noqa package-latest
-  ansible.builtin.pip:
-    name: "mysqlclient"
+      - "python3-mysqldb"
     state: "latest"
 
 # Hardening

@@ -4,7 +4,7 @@ After=mariadb.service
 
 [Service]
 WorkingDirectory={{ beernary_counter_destination_path }}
-ExecStart=python3 {{ beernary_counter_destination_path }}beernary_counter.py
+ExecStart={{ beernary_counter_destination_path }}.venv/bin/python3 {{ beernary_counter_destination_path }}beernary_counter.py
 KillMode=process
 Restart=on-failure
 RestartSec=3s

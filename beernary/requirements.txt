@@ -1,4 +1,4 @@
-RPi.GPIO
+rpi-lgpio
 Mock.GPIO
 pySerial
 ConfigParser

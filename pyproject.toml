@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "beernary-deployment"
+version = "0.1.0"
+description = "Deployment for the Geraffel Village Beernary"
+authors = ["Ziehmon <ziehmon@smtpd.de>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+ansible = "^11.8.0"
+
+[tool.poetry.group.dev.dependencies]
+ansible-lint = "^25.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

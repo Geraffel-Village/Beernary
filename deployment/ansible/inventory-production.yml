@@ -6,3 +6,4 @@ production:
       hosts:
         beernary-prod:
           ansible_host: beernary-prod # via ssh_config
+#          ansible_python_interpreter: /usr/bin/python3.11
