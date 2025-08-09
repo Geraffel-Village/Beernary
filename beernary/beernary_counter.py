@@ -253,7 +253,7 @@ if __name__ == '__main__':
                 display.send_message("[E] Keg setup error ", 2, 1)
                 sys.exit(1)
 
-            signal_light.send_command(signal_light.GREEN_ON)
+            signal_light.send_command(signal_light.RED_ON)
 
             display.clear()
             display.send_message("  Beernary Counter  ",      1,"ljust")
@@ -285,8 +285,8 @@ if __name__ == '__main__':
             # Implicit check for unauthorized user
             if current_user_data is not None:
 
-                signal_light.send_command(signal_light.GREEN_OFF)
-                signal_light.send_command(signal_light.YELLOW_ON)
+                signal_light.send_command(signal_light.RED_OFF)
+                signal_light.send_command(signal_light.GREEN_BLINK)
 
                 logger.info(f"Authorized user {current_user_name} for Tap {current_user_tap}")
 
@@ -314,7 +314,7 @@ if __name__ == '__main__':
                     display.send_message(f"Draft time left: {draft_time_unlock-i}s",   4, "ljust")
 
                     if i >= draft_time_warning:
-                        signal_light.send_command(signal_light.YELLOW_OFF)
+                        signal_light.send_command(signal_light.GREEN_OFF)
                         signal_light.send_command(signal_light.YELLOW_BLINK)
                     if mock_devices_enabled is True:
                         flowsensor.add_pulse(random.randint(1,10))
@@ -339,7 +339,6 @@ if __name__ == '__main__':
                     sys.exit(1)
 
                 signal_light.send_command(signal_light.YELLOW_OFF)
-                signal_light.send_command(signal_light.GREEN_OFF)
 
             # Handling of unauthorized user
             elif current_user_data is None:
