@@ -22,10 +22,12 @@
     state: present
   notify: restart influxdb
 
-- name: "Install pip dependencies for Ansible"
-  ansible.builtin.pip:
-    name: "influxdb"
-    state: "latest"
+- name: "Install python dependencies for Ansible"
+  become: true
+  ansible.builtin.apt:
+    update_cache: true
+    name: python3-influxdb
+    state: present
 
 - name: Copy influxdb config file influxdb.conf
   ansible.builtin.template:

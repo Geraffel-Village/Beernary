@@ -12,7 +12,7 @@
 
 [http]
   bind-address = "{{ beernary_influxdb_http_host }}:{{ beernary_influxdb_http_port }}"
-  log-enabled = {{ beernary_influxdb_enable_http_log }}
+  log-enabled = {{ 'true' if beernary_influxdb_enable_http_log else 'false' }}
 
 [logging]
   level = "{{ beernary_influxdb_loglevel }}"

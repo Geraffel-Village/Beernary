@@ -22,7 +22,7 @@ beernary_counter_config_gpio_valve_2_enabled: true
 beernary_counter_config_draft_time_unlock: 20
 beernary_counter_config_draft_time_warning: 15
 beernary_counter_config_identiy_webhook_token: "abc"
-beernary_counter_config_metrics_enabled: "False"
+beernary_counter_config_metrics_enabled: "True"
 beernary_database_root_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           31396630363265316133393033626564383261343731326535636637643530306266363135393362
