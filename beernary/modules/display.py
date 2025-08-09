@@ -6,10 +6,11 @@ Controls the beenary's integrated display. Supports different types (abstract ba
 
 from abc import ABC, abstractmethod
 import time
+import threading
 
 try:
     import RPi.GPIO as GPIO
-except: # pylint: disable=bare-except
+except:  # pylint: disable=bare-except
     import Mock.GPIO as GPIO
 
 
@@ -46,8 +47,9 @@ class Display(ABC):
     def close(self):
         """Abstract method to close the object, e.g. clean GPIO pins."""
 
+
 class LCDDisplay(Display):
-    """Represents a the currently installed LCD display (propably HD44780)."""
+    """Represents a the currently installed LCD display (probably HD44780)."""
 
     # Constants
     LCD_RS      = 25
@@ -79,117 +81,138 @@ class LCDDisplay(Display):
         GPIO.setup(self.LCD_D7, GPIO.OUT) # DB7
         GPIO.setup(self.LCD_LIGHT, GPIO.OUT) # Backlight
 
-        self.send_bit(0x33, self.LCD_CMD) # 110011 Initialize
-        self.send_bit(0x32, self.LCD_CMD) # 110010 Initialize
-        self.send_bit(0x06, self.LCD_CMD) # 000110 Cursor move direction
-        self.send_bit(0x0C, self.LCD_CMD) # 001100 Display On,Cursor Off, Blink Off
-        self.send_bit(0x28, self.LCD_CMD) # 101000 Data length, number of lines, font size
-        self.send_bit(0x01, self.LCD_CMD) # 000001 Clear display
+        self._enabled = False
+        self._lock = threading.Lock()
 
-        time.sleep(self.E_DELAY)
+        # robuste 4-Bit-Initialisierung
+        self._power_up_init()
 
-        self.enabled = False
+    def _power_up_init(self):
+        """Robust init sequence for HD44780 in 4-bit mode."""
+        time.sleep(0.05)  # >= 40 ms nach Power-Up
+
+        # 3x 0x30 im 8-bit Fake-Mode (nur High-Nibble senden)
+        for _ in range(3):
+            self._write_nibble(0x30, rs=False)
+            time.sleep(0.0045)  # >= 4.1 ms
+
+        # Wechsel in 4-bit Mode: 0x20 (nur High-Nibble)
+        self._write_nibble(0x20, rs=False)
+        time.sleep(0.0001)
+
+        # Jetzt normale Befehle als volle Bytes
+        self._cmd(0x28)  # Function Set: 4bit, 2 lines, 5x8 dots
+        self._cmd(0x0C)  # Display ON, Cursor OFF, Blink OFF
+        self.clear()
+        self._cmd(0x06)  # Entry Mode
 
     @property
     def enabled(self):
         """Returns status of display backlight (on/off)"""
-        return self.enabled
+        return self._enabled
 
     @enabled.setter
     def enabled(self, value):
         """Sets status of display backlight (on/off)"""
-        GPIO.output(self.LCD_LIGHT, value)
+        self._enabled = bool(value)
+        GPIO.output(self.LCD_LIGHT, self._enabled)
 
     def toggle_clock_enable(self):
         """Toggles the clock enable pin of the LCD display to execute instructions."""
-
         time.sleep(self.E_DELAY)
         GPIO.output(self.LCD_E, True)
         time.sleep(self.E_PULSE)
         GPIO.output(self.LCD_E, False)
         time.sleep(self.E_DELAY)
 
-    def send_bit(self, bits, mode):
-        """
-        Sends input bits (characters or commands) to the LCD display.
+    def _write_nibble(self, nibble, rs: bool):
+        GPIO.output(self.LCD_RS, rs)
 
-        Parameters:
-        bits - data to send (character or command)
-        mode - data mode
-          true   - Character
-          false  - Command
-        """
+        GPIO.output(self.LCD_D4, bool(nibble & 0x10))
+        GPIO.output(self.LCD_D5, bool(nibble & 0x20))
+        GPIO.output(self.LCD_D6, bool(nibble & 0x40))
+        GPIO.output(self.LCD_D7, bool(nibble & 0x80))
+
+        self.toggle_clock_enable()
+
+    def _cmd(self, cmd: int):
+        self.send_bit(cmd, self.LCD_CMD)
+
+        # Extra Delay für langsame Befehle
+        if cmd in (0x01, 0x02):  # CLEAR / HOME
+            time.sleep(0.0022)   # >= 2 ms
+
+    def send_bit(self, bits, mode):
         GPIO.output(self.LCD_RS, mode)
 
         # High bits
-        GPIO.output(self.LCD_D4, False)
-        GPIO.output(self.LCD_D5, False)
-        GPIO.output(self.LCD_D6, False)
-        GPIO.output(self.LCD_D7, False)
-
-        if bits&0x10 == 0x10:
-            GPIO.output(self.LCD_D4, True)
-        if bits&0x20 == 0x20:
-            GPIO.output(self.LCD_D5, True)
-        if bits&0x40 == 0x40:
-            GPIO.output(self.LCD_D6, True)
-        if bits&0x80 == 0x80:
-            GPIO.output(self.LCD_D7, True)
-
+        GPIO.output(self.LCD_D4, bool(bits & 0x10))
+        GPIO.output(self.LCD_D5, bool(bits & 0x20))
+        GPIO.output(self.LCD_D6, bool(bits & 0x40))
+        GPIO.output(self.LCD_D7, bool(bits & 0x80))
         self.toggle_clock_enable()
 
         # Low bits
-        GPIO.output(self.LCD_D4, False)
-        GPIO.output(self.LCD_D5, False)
-        GPIO.output(self.LCD_D6, False)
-        GPIO.output(self.LCD_D7, False)
-
-        if bits&0x01==0x01:
-            GPIO.output(self.LCD_D4, True)
-        if bits&0x02==0x02:
-            GPIO.output(self.LCD_D5, True)
-        if bits&0x04==0x04:
-            GPIO.output(self.LCD_D6, True)
-        if bits&0x08==0x08:
-            GPIO.output(self.LCD_D7, True)
-
+        GPIO.output(self.LCD_D4, bool(bits & 0x01))
+        GPIO.output(self.LCD_D5, bool(bits & 0x02))
+        GPIO.output(self.LCD_D6, bool(bits & 0x04))
+        GPIO.output(self.LCD_D7, bool(bits & 0x08))
         self.toggle_clock_enable()
 
     def send_message(self, message, line, style):
+        with self._lock:
+            try:
+                # Style
+                if style == "centred":
+                    message = message.center(self.LCD_WIDTH," ")
+                elif style == "ljust":
+                    message = message.ljust(self.LCD_WIDTH," ")
+                elif style == "rjust":
+                    message = message.rjust(self.LCD_WIDTH," ")
+                else:
+                    raise AttributeError(f"Unknown message style: {style}")
 
-        # Handle style for message
-        if style == "centred":
-            message = message.center(self.LCD_WIDTH," ")
-        elif style == "ljust":
-            message = message.ljust(self.LCD_WIDTH," ")
-        elif style == "rjust":
-            message = message.rjust(self.LCD_WIDTH," ")
-        else:
-            raise AttributeError(f"Unknown message style: {style}")
+                # Arschtritt vor Ausgabe
+                self._cmd(0x28)  # Function Set
+                self._cmd(0x0C)  # Display ON
 
-        # Handle line for message
-        if line   == 1:
-            self.send_bit(self.LCD_LINE_1, self.LCD_CMD)
-        elif line == 2:
-            self.send_bit(self.LCD_LINE_2, self.LCD_CMD)
-        elif line == 3:
-            self.send_bit(self.LCD_LINE_3, self.LCD_CMD)
-        elif line == 4:
-            self.send_bit(self.LCD_LINE_4, self.LCD_CMD)
-        else:
-            raise AttributeError(f"Unknown display line: {line}")
+                # Zeilenadresse
+                if   line == 1: self._cmd(self.LCD_LINE_1)
+                elif line == 2: self._cmd(self.LCD_LINE_2)
+                elif line == 3: self._cmd(self.LCD_LINE_3)
+                elif line == 4: self._cmd(self.LCD_LINE_4)
+                else:
+                    raise AttributeError(f"Unknown display line: {line}")
 
-        # split message longer than LCD_WITH
-        for i in range(self.LCD_WIDTH):
-            self.send_bit(ord(message[i]),self.LCD_CHR)
+                # Zeichen ausgeben
+                for i in range(self.LCD_WIDTH):
+                    self.send_bit(ord(message[i]), self.LCD_CHR)
 
-        # send message to STDOUT too, if configured
-        if self.LCD_STDOUT is True:
-            print(message)
+                if self.LCD_STDOUT:
+                    print(message)
+
+            except Exception:
+                # Fallback: Re-Init und Wiederholung
+                self.reinit()
+
+                self._cmd(0x28)
+                self._cmd(0x0C)
+
+                if   line == 1: self._cmd(self.LCD_LINE_1)
+                elif line == 2: self._cmd(self.LCD_LINE_2)
+                elif line == 3: self._cmd(self.LCD_LINE_3)
+                elif line == 4: self._cmd(self.LCD_LINE_4)
+
+                for i in range(self.LCD_WIDTH):
+                    self.send_bit(ord(message[i]), self.LCD_CHR)
 
     def clear(self):
-        """Clears the display."""
-        self.send_bit(0x01, self.LCD_CMD)
+        with self._lock:
+            self._cmd(0x01)  # CLEAR
+
+    def reinit(self):
+        with self._lock:
+            self._power_up_init()
 
     def close(self):
         GPIO.cleanup()
