@@ -6,7 +6,6 @@ Controls the beenary's integrated display. Supports different types (abstract ba
 
 from abc import ABC, abstractmethod
 import time
-import threading
 
 from loguru import logger
 
@@ -86,7 +85,6 @@ class LCDDisplay(Display):
         GPIO.setup(self.LCD_LIGHT, GPIO.OUT) # Backlight
 
         self._enabled = False
-        self._lock = threading.Lock()
 
         # robuste 4-Bit-Initialisierung
         self._power_up_init()
@@ -164,60 +162,57 @@ class LCDDisplay(Display):
         self.toggle_clock_enable()
 
     def send_message(self, message, line, style):
-        with self._lock:
-            try:
-                # Style
-                if style == "centred":
-                    message = message.center(self.LCD_WIDTH," ")
-                elif style == "ljust":
-                    message = message.ljust(self.LCD_WIDTH," ")
-                elif style == "rjust":
-                    message = message.rjust(self.LCD_WIDTH," ")
-                else:
-                    raise AttributeError(f"Unknown message style: {style}")
+        try:
+            # Style
+            if style == "centred":
+                message = message.center(self.LCD_WIDTH," ")
+            elif style == "ljust":
+                message = message.ljust(self.LCD_WIDTH," ")
+            elif style == "rjust":
+                message = message.rjust(self.LCD_WIDTH," ")
+            else:
+                raise AttributeError(f"Unknown message style: {style}")
 
-                # Arschtritt vor Ausgabe
-                self._cmd(0x28)  # Function Set
-                self._cmd(0x0C)  # Display ON
+            # Arschtritt vor Ausgabe
+            self._cmd(0x28)  # Function Set
+            self._cmd(0x0C)  # Display ON
 
-                # Zeilenadresse
-                if   line == 1: self._cmd(self.LCD_LINE_1)
-                elif line == 2: self._cmd(self.LCD_LINE_2)
-                elif line == 3: self._cmd(self.LCD_LINE_3)
-                elif line == 4: self._cmd(self.LCD_LINE_4)
-                else:
-                    raise AttributeError(f"Unknown display line: {line}")
+            # Zeilenadresse
+            if   line == 1: self._cmd(self.LCD_LINE_1)
+            elif line == 2: self._cmd(self.LCD_LINE_2)
+            elif line == 3: self._cmd(self.LCD_LINE_3)
+            elif line == 4: self._cmd(self.LCD_LINE_4)
+            else:
+                raise AttributeError(f"Unknown display line: {line}")
 
-                # Zeichen ausgeben
-                for i in range(self.LCD_WIDTH):
-                    self.send_bit(ord(message[i]), self.LCD_CHR)
+            # Zeichen ausgeben
+            for i in range(self.LCD_WIDTH):
+                self.send_bit(ord(message[i]), self.LCD_CHR)
 
-                if self.LCD_STDOUT:
-                    print(message)
+            if self.LCD_STDOUT:
+                print(message)
 
-            except Exception:
-                # Fallback: Re-Init und Wiederholung
-                logger.warning("Error sending message to LCD - reinitializing and retrying")
-                self.reinit()
+        except Exception:
+            # Fallback: Re-Init und Wiederholung
+            logger.warning("Error sending message to LCD - reinitializing and retrying")
+            self.reinit()
 
-                self._cmd(0x28)
-                self._cmd(0x0C)
+            self._cmd(0x28)
+            self._cmd(0x0C)
 
-                if   line == 1: self._cmd(self.LCD_LINE_1)
-                elif line == 2: self._cmd(self.LCD_LINE_2)
-                elif line == 3: self._cmd(self.LCD_LINE_3)
-                elif line == 4: self._cmd(self.LCD_LINE_4)
+            if   line == 1: self._cmd(self.LCD_LINE_1)
+            elif line == 2: self._cmd(self.LCD_LINE_2)
+            elif line == 3: self._cmd(self.LCD_LINE_3)
+            elif line == 4: self._cmd(self.LCD_LINE_4)
 
-                for i in range(self.LCD_WIDTH):
-                    self.send_bit(ord(message[i]), self.LCD_CHR)
+            for i in range(self.LCD_WIDTH):
+                self.send_bit(ord(message[i]), self.LCD_CHR)
 
     def clear(self):
-        with self._lock:
-            self._cmd(0x01)  # CLEAR
+        self._cmd(0x01)  # CLEAR
 
     def reinit(self):
-        with self._lock:
-            self._power_up_init()
+        self._power_up_init()
 
     def close(self):
         GPIO.cleanup()
