@@ -234,6 +234,7 @@ def main():
                     current_user_id = webhook_reader.read_rfid()
                     if not tap_free.is_set():
                         logger.warning("Tap is currently busy, skipping webhook auth")
+                        time.sleep(1)
                         continue
                     if current_user_id is not None:
                         logger.info(f"Webhook identity received: {current_user_id}")
